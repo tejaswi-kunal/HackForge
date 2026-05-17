@@ -1,13 +1,13 @@
 
 const validateProblem=(data)=>{
-    if(!data || data!='object')
+    if(!data || typeof data!='object')
     {
         throw new Error("Proper Data Didnt Recived!");
     }
 
     // now we have to check if all the mandotary feilds are present 
     const mandotaryFeilds=['title','description','difficulty','tags',
-                            'visibleTestCases','starterCode','problemCreator','referenceSolution'];
+                            'visibleTestCases','starterCode','referenceSolution'];
     
 
     const isValid=mandotaryFeilds.every((Element)=>Object.keys(data).includes(Element));
@@ -38,9 +38,9 @@ const validateProblem=(data)=>{
         throw new Error("Invalid Language In Starter Code!");
     }
 
-    if(typeof Element.code!=='string' || Element.code.trim()==="")
+    if(typeof Element.initialCode!=='string' || Element.initialCode.trim()==="")
     {
-        throw new Error("Starter Code Required!");
+        throw new Error("Starter Code Is Required!");
     }
 
     });

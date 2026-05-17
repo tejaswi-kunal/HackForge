@@ -1,6 +1,9 @@
-const {getLanguageId,submitBatch}=require('../utils/LanguageUtility');
+const {getLanguageId,submitBatch,submitToken}=require('../utils/LanguageUtility');
 const validateProblem=require('../utils/validateProblem');
+const Problem=require('../model/Problems');
+
 const createProblem=async(req,res)=>{
+    try{
     // first we have to validate all the feilds
     validateProblem(req.body);
 
@@ -35,7 +38,36 @@ const createProblem=async(req,res)=>{
         // now we have to check this submission batch
         const submitResult=await submitBatch(submission);
 
-        // tokens recieved,we will get actual result with get req using these tokens
+        // first we have to take out the array of tokens from the array of objects 
+        const resultTokens=submitResult.map((value)=>value.token);
+
+        const finalResult=await submitToken(resultTokens);
+
+        // now we have to verify the final result
+        for(const element of finalResult)
+        {
+
+            if(element.status.id!=3)
+            {
+                // if code is incorrect we dont want to move forward
+                return res.status(400).send(element.status.description);
+            }
+        }
     }
 
+    // now we can store data in db
+    const question=await Problem.create({
+        ...req.body,
+        // we have to also add the refrence of the admin (admin id was already stored in re.result in middleware)
+        problemCreator:req.result
+    });
+
+    res.status(201).send("Problem Created Successfully!");
+
+
+    }catch(err){
+        res.status(400).send("Error + "+err);
+    }
 }
+
+module.exports=createProblem;

@@ -13,8 +13,10 @@ const userRegister=async (req,res)=>{
         req.body.password=await bcrypt.hash(req.body.password,10);
 
         // saving user in db
-        const people=await User.create(req.body);
-        people.role='user';
+        const people=await User.create({
+            ...req.body,
+            role:'user'
+        });
 
         // creating jwt token
         const token=jwt.sign({id:people._id,emailId:people.emailId,role:'user'},process.env.SECRET_KEY,{expiresIn:'60m'});
@@ -92,8 +94,10 @@ const adminRegister=async (req,res)=>{
         req.body.password=await bcrypt.hash(req.body.password,10);
 
         // saving admin in db
-        const people=await User.create(req.body);
-        people.role='admin'
+        const people=await User.create({
+            ...req.body,
+            role:'admin'
+        });
 
         // creating jwt token
         const token=jwt.sign({id:people._id,emailId:people.emailId,role:'admin'},process.env.SECRET_KEY,{expiresIn:'60m'});

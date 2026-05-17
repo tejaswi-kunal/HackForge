@@ -23,6 +23,7 @@ const userMiddleware=async(req,res,next)=>{
         // checking token validation
         const payload=jwt.verify(token,process.env.SECRET_KEY);
 
+        // storing the user id for further use 
         const result=payload.id;
         req.result=result;
         

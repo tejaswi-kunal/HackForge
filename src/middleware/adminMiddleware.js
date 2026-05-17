@@ -9,7 +9,7 @@ const adminMiddleware=async(req,res,next)=>{
         // check if token is present
         if(!token)
         {
-            throw new Error('Token Expired!');
+            throw new Error('Token Expired,Please Login Again!');
         }
 
         // check if token is already blocked->if its present in the redis db
@@ -23,6 +23,7 @@ const adminMiddleware=async(req,res,next)=>{
         // checking token validation
         const payload=jwt.verify(token,process.env.SECRET_KEY);
 
+        // storing admin id for futher use
         const result=payload.id;
         req.result=result;
 

@@ -1,4 +1,3 @@
-const {getLanguageId,submitBatch,submitToken}=require('../utils/ProblemUtility');
 const validateProblem=require('../utils/validateProblem');
 const Problem=require('../model/Problems');
 
@@ -10,7 +9,7 @@ const createProblem=async(req,res)=>{
     // now we can store data in db
     const question=await Problem.create({
         ...req.body,
-        // we have to also add the refrence of the admin (admin id was already stored in re.result in middleware)
+        // we have to also add the refrence of the admin (admin id was already stored in req.result in middleware)
         problemCreator:req.result
     });
 
@@ -22,68 +21,98 @@ const createProblem=async(req,res)=>{
     }
 }
 
-// const updateProblem=async(req,res)=>{
-//     // we will use the put ,instead of patch ,so we will update each feild recieved from the frontend 
-//     // so we have to validate each feild recieved from the frontend
-//     try{
+const updateProblem=async(req,res)=>{
+    try{
+        const {id}=req.params;
 
-//     // first try to fetch the problem the id which we have to update
+        //check if we actually recived id
+        if(!id)
+        {
+            return res.status(404).send("No Valid Problem ID Recived Please Try Again!");
+        }
+
+        // fetch problem with id recieved
+        const DSAproblem=await Problem.findById(id);
+
+        if(!DSAproblem)
+        {
+            return res.status(400).send("Invalid Problem ID");
+        }
+
+        // we will use the put method to update the problem
+        // first verify the feilds
+        await validateProblem(req.body);
+
+        // now update the problem
+        const updatedProblem=await Problem.findByIdAndUpdate(id,{...req.body},{runValidators:true,new:true});
+
+        res.status(200).send(updatedProblem);
+    }catch(err)
+    {
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const deleteProblem=async(req,res)=>{
+    try{
+    // first we have to check if the valid id recived
+    const {id}=req.params;
+
+    if(!id)
+    {
+        return res.status(404).send("No Valid Problem ID Recived Please Try Again!");
+    }
+
+    const deletedProblem=await Problem.findByIdAndDelete(id);
+
+    if(!deletedProblem)
+    {
+        return res.status(400).send("Invalid ID");
+    }
+
+    res.status(200).send(deletedProblem);
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const getProblem=async(req,res)=>{
+    try{
+        // first verify if we recived a id
+        const {id}=req.params;
+
+        if(!id)
+        {
+            return res.status(404).send("No Valid Problem ID Recived Please Try Again!");
+        }
+
+        const DSAproblem=await Problem.findById(id);
+
+        if(!DSAproblem)
+        {
+            return res.status(400).send("Invalid ID");
+        }
+
+        res.status(200).send(DSAproblem);
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const getAllProblems=async(req,res)=>{
+    try{
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page-1) * limit;
+
+    const problemSet=await Problem.find({}).skip(skip).limit(limit);
+    return res.status(200).send(problemSet);
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
 
 
-//     // first we have to validate all the feilds
-//     validateProblem(req.body);
-
-//     const {
-//         visibleTestCases,
-//         hiddenTestCases,
-//         referenceSolution
-//     }=req.body;
-    
-//     // now we have to check if the refrence solution is correct 
-//     for(const {language,completeCode} of referenceSolution)
-//     {
-//         // first we have to access the languageId
-//         const language_id=getLanguageId(language);
-
-//         // now we have to create the submission array for each language code one by one
-//         // with diffrent visible testcase
-//         // source_code
-//         // language_id
-//         // stdin
-//         // expected_output
-
-//         const submission=visibleTestCases.map(({input,output})=>{
-//             return {
-//                 source_code:completeCode,
-//                 language_id:language_id,
-//                 stdin:input,
-//                 expected_output:output
-//             }
-//         });
-
-//         // now we have to check this submission batch
-//         const submitResult=await submitBatch(submission);
-
-//         // first we have to take out the array of tokens from the array of objects 
-//         const resultTokens=submitResult.map((value)=>value.token);
-
-//         const finalResult=await submitToken(resultTokens);
-
-//         // now we have to verify the final result
-//         for(const element of finalResult)
-//         {
-
-//             if(element.status.id!=3)
-//             {
-//                 // if code is incorrect we dont want to move forward
-//                 return res.status(400).send(element.status.description);
-//             }
-//         }
-//     }
-
-//     }catch(err){
-
-//     }
-// }
-
-module.exports=createProblem;
+module.exports={createProblem,updateProblem,deleteProblem,getProblem,getAllProblems};

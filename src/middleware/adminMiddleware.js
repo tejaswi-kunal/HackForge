@@ -30,7 +30,7 @@ const adminMiddleware=async(req,res,next)=>{
         // check if the token is of admin
         if(payload.role!='admin')
         {
-            throw new Error('Credentails are not enough to login any admin!');
+            throw new Error('Credentails are not enough to login as admin!');
         }
 
         next();

@@ -1,5 +1,5 @@
-
-const validateProblem=(data)=>{
+const {getLanguageId,submitBatch,submitToken}=require("./ProblemUtility");
+const validateProblem=async(data)=>{
     if(!data || typeof data!='object')
     {
         throw new Error("Proper Data Didnt Recived!");
@@ -44,6 +44,51 @@ const validateProblem=(data)=>{
     }
 
     });
+
+    // we have to also check if the refrence solution of the given problem is valid
+    const {
+        visibleTestCases,
+        hiddenTestCases,
+        referenceSolution
+    }=data;
+    
+    // now we have to check if the refrence solution is correct 
+    for(const {language,completeCode} of referenceSolution)
+    {
+        // first we have to access the languageId
+        const language_id=getLanguageId(language);
+
+        // now we have to create the submission array for each language code one by one
+        // with diffrent visible testcase
+        const submission=visibleTestCases.map(({input,output})=>{
+            return {
+                source_code:completeCode,
+                language_id:language_id,
+                stdin:input,
+                expected_output:output
+            }
+        });
+
+        // now we have to check this submission batch
+        const submitResult=await submitBatch(submission);
+
+        // first we have to take out the array of tokens from the array of objects 
+        const resultTokens=submitResult.map((value)=>value.token);
+
+        // final result using the tokens
+        const finalResult=await submitToken(resultTokens);
+
+        // now we have to verify the final result
+        for(const element of finalResult)
+        {
+            if(element.status.id!=3)
+            {
+                throw new Error(`Reference solution failed for language [${language}]: ${element.status.description}`);
+            }
+        }
+    }
+
+    return true;
     
 }
 

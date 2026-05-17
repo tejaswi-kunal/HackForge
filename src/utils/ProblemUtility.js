@@ -14,7 +14,6 @@ const getLanguageId = (lang) => {
 // getting token
 const submitBatch = async (submissions) => {
     // will decide request type
-
     if(!process.env.RAPID_API_KEY)
     {
       throw new Error("Rapid API Key Missing");

@@ -1,5 +1,5 @@
 const express=require('express');
-const {userRegister,login,logout,adminRegister,getAccount}=require('../controller/userAuthent');
+const {userRegister,login,logout,adminRegister,getAccount}=require('../controller/userAPI');
 const userMiddleware=require('../middleware/userMiddleware');
 const adminMiddleware=require('../middleware/adminMiddleware');
 

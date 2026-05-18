@@ -13,41 +13,43 @@ const getLanguageId = (lang) => {
 
 // getting token
 const submitBatch = async (submissions) => {
-    // will decide request type
-    if(!process.env.RAPID_API_KEY)
-    {
+  if(!process.env.RAPID_API_KEY) {
       throw new Error("Rapid API Key Missing");
-    }
+  }
 
-    const options = {
-    method: "POST",
-    url: process.env.RAPID_URL,
-    params: {
-      base64_encoded: "false",
-    },
-    headers: {
-      "x-rapidapi-key": process.env.RAPID_API_KEY,
-      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
-      "Content-Type": "application/json",
-    },
-    data: {
-      submissions,
-    },
-    };
+  const encodedSubmissions = submissions.map((sub) => ({
+      ...sub,
+      source_code: Buffer.from(sub.source_code).toString('base64'),
+      stdin: Buffer.from(sub.stdin || '').toString('base64'),
+      expected_output: Buffer.from(sub.expected_output || '').toString('base64')
+  }));
 
-    //fetching request
-    async function fetchData() {
-    try {
-      const response = await axios.request(options);
-      return response.data;
-    } catch (error) {
-      console.error(error);
-    }
-    }
+  const options = {
+      method: "POST",
+      url: process.env.RAPID_URL,
+      params: {
+          base64_encoded: "true",  
+      },
+      headers: {
+          "x-rapidapi-key": process.env.RAPID_API_KEY,
+          "x-rapidapi-host": process.env.RAPID_API_HOST,
+          "Content-Type": "application/json",
+      },
+      data: {
+          submissions: encodedSubmissions, 
+      },
+  };
 
-    // calling the function with await
+  async function fetchData() {
+      try {
+          const response = await axios.request(options);
+          return response.data;
+      } catch (error) {
+          console.error(error);
+      }
+  }
+
     return await fetchData();
-
 };
 
 // waiting function
@@ -58,53 +60,53 @@ const waiting = (timer)=>{
 }
 
 // getting final result
-const submitToken = async(resultToken)=>{
-const options = {
-  method: 'GET',
-  url: process.env.RAPID_URL,
-  params: {
-    tokens: resultToken.join(","),
-    base64_encoded: 'false',
-    fields: '*'
-  },
-  headers: {
-    'x-rapidapi-key': process.env.RAPID_API_KEY,
-    'x-rapidapi-host': 'judge0-ce.p.rapidapi.com'
-  }
+const submitToken = async (resultToken) => {
+    const options = {
+        method: 'GET',
+        url: process.env.RAPID_URL,
+        params: {
+            tokens: resultToken.join(","),
+            base64_encoded: 'true',  
+            fields: '*'
+        },
+        headers: {
+            'x-rapidapi-key': process.env.RAPID_API_KEY,
+            'x-rapidapi-host': process.env.RAPID_API_HOST
+        }
+    };
+
+    async function fetchData() {
+        try {
+            const response = await axios.request(options);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    while(true) {
+        const result = await fetchData();
+
+        if(!result) {
+            throw new Error("Judge0 Fetch Failed");
+        }
+
+        const isResultObtained = result.submissions.every((value) => value.status.id > 2);
+
+        if(isResultObtained) {
+            // ✅ decode base64 fields before returning
+            const decoded = result.submissions.map((sub) => ({
+                ...sub,
+                stdout: sub.stdout ? Buffer.from(sub.stdout, 'base64').toString('utf-8') : null,
+                stderr: sub.stderr ? Buffer.from(sub.stderr, 'base64').toString('utf-8') : null,
+                compile_output: sub.compile_output ? Buffer.from(sub.compile_output, 'base64').toString('utf-8') : null,
+            }));
+            return decoded;
+        }
+
+        await waiting(300);
+    }
 };
-
-async function fetchData() {
-	try {
-		const response = await axios.request(options);
-		return response.data;
-	} catch (error) {
-		console.error(error);
-	}
-}
-
-while(true){
-const result=await fetchData();
-
-// checking if we recieved the final result
-if(!result)
-{
-  throw new Error("Judge0 Fetch Failed");
-}
-
-const isResultObtained=result.submissions.every((value)=>value.status.id>2);
-
-if(isResultObtained)
-{
-  // sending final result array
-  return result.submissions;
-}
-
-// else we have to again run the above function till we get the final result
-// waiting for certain seconds 
-await waiting(300);
-
-}
-}
 
 const validateLanguage=(language)=>{
     if(language!=='cpp' && language!='java' && language!='javascript' && language!='python')

@@ -106,4 +106,11 @@ await waiting(300);
 }
 }
 
-module.exports = {getLanguageId,submitBatch,submitToken};
+const validateLanguage=(language)=>{
+    if(language!=='cpp' && language!='java' && language!='javascript' && language!='python')
+    {
+      throw new Error("Support For This Language Is Not Available!");
+    }
+}
+
+module.exports = {getLanguageId,submitBatch,submitToken,validateLanguage};

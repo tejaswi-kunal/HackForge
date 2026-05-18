@@ -30,17 +30,18 @@ const submissionSchema=new Schema({
     status: {
         type: String,
         enum: [
-            "pending",
-            "running",
-            "accepted",
-            "wrong_answer",
-            "time_limit_exceeded",
-            "memory_limit_exceeded",
-            "runtime_error",
-            "compilation_error",
-            "internal_error"
+            "Pending",
+            "Processing",
+            "Accepted",
+            "Wrong Answer",
+            "Time Limit Exceeded",
+            "Memory Limit Exceeded",
+            "Runtime Error",
+            "Compilation Error",
+            "Internal Error",
+            "Error"
         ],
-        default: "pending"
+        default: "Pending"
     },
 
     runtime:{
@@ -61,6 +62,11 @@ const submissionSchema=new Schema({
     testCasesTotal:{
         type:Number,
         default:0
+    },
+
+    errorMessege:{
+        type:String,
+        default:''
     }
 },{
     timestamps:true

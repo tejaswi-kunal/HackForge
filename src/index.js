@@ -5,7 +5,7 @@ const cookieParser=require('cookie-parser');
 const authRouter=require('./router/auth');
 const redisClient=require('./config/redis');
 const ProblemRouter=require('./router/problem');
-
+const submissionRouter=require('./router/submission');
 
 
 // app initialization
@@ -21,6 +21,9 @@ app.use('/auth',authRouter);
 
 // problem
 app.use('/problem',ProblemRouter);
+
+// submission
+app.use('/submission',submissionRouter);
 
 
 // connection initialization

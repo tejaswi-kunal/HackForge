@@ -12,6 +12,8 @@ ProblemRouter.delete('/delete/:id',adminMiddleware,deleteProblem);
 ProblemRouter.get('/getProblem/:id',userMiddleware,getProblem);
 ProblemRouter.get('/getAllProblem',userMiddleware,getAllProblems);
 ProblemRouter.get('/filter',userMiddleware,filterProblems);
+
+// for this we have to build submission Schema
 // ProblemRouter.get('/getAllProblemSolvedByUser',getAllProblemsSolvedByUser);
 
 module.exports=ProblemRouter;

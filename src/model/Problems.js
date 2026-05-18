@@ -4,11 +4,15 @@ const {Schema}=mongoose;
 const problemSchema=Schema({
     title:{
         type:String,
+        minlength:3,
+        maxlength:100,
         trim:true,
         required:true
     },
     description:{
         type:String,
+        minlength:20,
+        maxlength:5000,
         trim:true,
         required:true
     },
@@ -96,7 +100,36 @@ const problemSchema=Schema({
                 required:true
             }
         }
-    ]
+    ],
+
+    editorial:{
+        type:String
+    },
+
+    hints:[String],
+
+    constraints:[
+        {
+            type:String,
+            required:true
+        }
+    ],
+    totalSubmissions:{
+        type:Number,
+        default:0
+    },
+    acceptedSubmissions:{
+        type:Number,
+        default:0
+    },
+    likes:{
+        type:Number,
+        default:0
+    },
+    dislikes:{
+        type:Number,
+        default:0
+    }
 },{
     timestamps:true
 });

@@ -94,7 +94,6 @@ const submitToken = async (resultToken) => {
         const isResultObtained = result.submissions.every((value) => value.status.id > 2);
 
         if(isResultObtained) {
-            // ✅ decode base64 fields before returning
             const decoded = result.submissions.map((sub) => ({
                 ...sub,
                 stdout: sub.stdout ? Buffer.from(sub.stdout, 'base64').toString('utf-8') : null,

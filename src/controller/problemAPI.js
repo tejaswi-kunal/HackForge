@@ -1,5 +1,7 @@
 const validateProblem=require('../utils/validateProblem');
 const Problem=require('../model/Problems');
+const User = require('../model/User');
+const { options } = require('../router/submission');
 
 const createProblem=async(req,res)=>{
     try{
@@ -86,7 +88,7 @@ const getProblem=async(req,res)=>{
             return res.status(404).send("No Valid Problem ID Recived Please Try Again!");
         }
 
-        const DSAproblem=await Problem.findById(id);
+        const DSAproblem=await Problem.findById(id).select("-hiddenTestCases -problemCreator");
 
         if(!DSAproblem)
         {
@@ -107,7 +109,7 @@ const getAllProblems=async(req,res)=>{
     // objects to skip
     const skip = (page-1) * limit;
 
-    const problemSet=await Problem.find({}).skip(skip).limit(limit);
+    const problemSet=await Problem.find({}).skip(skip).limit(limit).select("_id title difficulty totalSubmissions acceptedSubmissions");
     return res.status(200).send(problemSet);
 
     }catch(err){
@@ -264,5 +266,38 @@ const filterProblems = async (req, res) => {
     }
 }
 
+const getAllProblemsSolvedByUser=async(req,res)=>{
+    try{
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        // objects to skip
+        const skip = (page-1) * limit;
 
-module.exports={createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,filterProblems};
+        // first we have to access the user's populated data 
+        const user=await User.findById(req.result).populate({
+            path:"problemsSolved",
+            select:"_id title difficulty",
+            options:{
+                skip:skip,
+                limit:limit
+            }
+        });
+
+        res.status(200).send(user.problemsSolved);
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+
+}
+
+const getNumberOfProblemsSolvedByUser=async(req,res)=>{
+    try{
+        const user=await User.findById(req.result);
+        res.status(200).send(user.problemsSolved.length);
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+
+module.exports={createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,filterProblems,getAllProblemsSolvedByUser,getNumberOfProblemsSolvedByUser};

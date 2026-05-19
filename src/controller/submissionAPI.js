@@ -1,6 +1,7 @@
 const {validateLanguage,getLanguageId,submitBatch,submitToken}=require("../utils/ProblemUtility");
 const Submission=require("../model/Submission");
 const Problem=require("../model/Problems");
+const User=require("../model/User");
 
 const submitCode=async(req,res)=>{
     try{
@@ -152,6 +153,15 @@ const submitCode=async(req,res)=>{
 
         await submittedCode.save();
 
+        // we have to also updated the problemSolved of user 
+        const user=await User.findById(req.result);
+
+        if(!user.problemsSolved.includes(problemID) && status=='Accepted')
+        {
+            // if the current submittend problem is correct and its not in the list of solvedProblem 
+            user.problemsSolved.push(problemID);
+            await user.save();
+        }
         res.status(201).send(submittedCode);
     }catch(err){
         res.status(400).send("Error : "+err.message);
@@ -159,15 +169,3 @@ const submitCode=async(req,res)=>{
 }
 
 module.exports=submitCode;
-
-//     language_id: 54,
-//     stdin: '2 3',
-//     expected_output: '5',
-//     stdout: '5',
-//     status_id: 3,
-//     created_at: '2025-05-12T16:47:37.239Z',
-//     finished_at: '2025-05-12T16:47:37.695Z',
-//     time: '0.002',
-//     memory: 904,
-//     stderr: null,
-//     token: '611405fa-4f31-44a6-99c8-6f407bc14e73',

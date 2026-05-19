@@ -1,5 +1,5 @@
 const express=require('express');
-const {createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,filterProblems}=require('../controller/problemAPI');
+const {createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,filterProblems,getAllProblemsSolvedByUser,getNumberOfProblemsSolvedByUser}=require('../controller/problemAPI');
 const adminMiddleware=require('../middleware/adminMiddleware');
 const userMiddleware=require('../middleware/userMiddleware');
 
@@ -12,9 +12,9 @@ ProblemRouter.delete('/delete/:id',adminMiddleware,deleteProblem);
 ProblemRouter.get('/getProblem/:id',userMiddleware,getProblem);
 ProblemRouter.get('/getAllProblem',userMiddleware,getAllProblems);
 ProblemRouter.get('/filter',userMiddleware,filterProblems);
+ProblemRouter.get('/getAllProblemSolvedByUser',userMiddleware,getAllProblemsSolvedByUser);
+ProblemRouter.get('/getNumberOfProblemsSolvedByUser',userMiddleware,getNumberOfProblemsSolvedByUser);
 
-// for this we have to build submission Schema
-// ProblemRouter.get('/getAllProblemSolvedByUser',getAllProblemsSolvedByUser);
 
 module.exports=ProblemRouter;
 

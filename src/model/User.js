@@ -1,4 +1,5 @@
 const mongoose=require('mongoose');
+const Problem = require('./Problems');
 const {Schema}=mongoose;
 
 const userSchema=Schema({
@@ -49,7 +50,10 @@ const userSchema=Schema({
         default:'user'
     },
     problemsSolved:{
-        type:[String]
+        type:[{
+            type:Schema.Types.ObjectId,
+            ref:'Problem'
+        }]
     },
     totalSolved:{
         type:Number,

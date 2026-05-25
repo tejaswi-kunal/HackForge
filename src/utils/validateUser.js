@@ -8,7 +8,7 @@ function validateUser(data)
     }
 
     // require feilds checking
-    const mandotaryFeilds=['firstName','userName','emailId','password'];
+    const mandotaryFeilds=['userName','emailId','password'];
     const isAllowed=mandotaryFeilds.every((info)=>Object.keys(data).includes(info));
 
     if(!isAllowed)
@@ -34,7 +34,7 @@ function validateUser(data)
     });
 
     //other schema validation check
-    if(!(data.firstName.length>=3 && data.firstName.length<=50))
+    if(data.firstName && !(data.firstName?.length>=3 && data.firstName?.length<=50))
     {
         throw new Error('min Length of firstName should be 3 and max 50!');
     }

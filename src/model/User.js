@@ -4,7 +4,6 @@ const {Schema}=mongoose;
 const userSchema=Schema({
     firstName:{
         type:String,
-        required:true,
         minlength:3,
         maxlength:50
     },

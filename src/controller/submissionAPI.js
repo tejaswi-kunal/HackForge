@@ -184,4 +184,43 @@ const submitCode=async(req,res)=>{
     }
 }
 
-module.exports=submitCode;
+const runCode=async(req,res)=>{
+    try{
+        const language=req.body.language;
+        validateLanguage(language);
+
+        const code = req.body.code;
+
+        const {problemID}=req.params;
+        if(!problemID)
+        {
+            return res.status(404).send("No Valid Problem Id Recived Please Try Again!");
+        }
+        const DSAproblem=await Problem.findById(problemID);
+        if(!DSAproblem)
+        {
+            return res.status(400).send("Invalid Problem Id!");
+        }
+
+        const language_id=getLanguageId(language);
+
+        const submission=DSAproblem.visibleTestCases.map(({input,output})=>{
+            return {
+                source_code:code,
+                language_id:language_id,
+                stdin:input,
+                expected_output:output
+            }
+        });
+
+        const submitResult=await submitBatch(submission);
+        const resultTokens=submitResult.map((value)=>value.token);
+        const finalResult=await submitToken(resultTokens);
+
+        res.status(200).send(finalResult);
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+module.exports={submitCode,runCode};

@@ -24,7 +24,15 @@ const userRegister=async (req,res)=>{
 
         // sending jwt token 
         res.cookie('token',token,{maxAge:60*60*1000});
-        res.status(201).send('User Registered Successfully!');
+        const reply={
+            userName:people.userName,
+            emailId:people.emailId,
+            _id:people._id
+        };
+        res.status(201).json({
+            user:reply,
+            message:"User Registered Successfully!"
+        })
 
     }catch(err){
         res.status(400).send("Error : " + err.message);
@@ -65,7 +73,17 @@ const login=async (req,res)=>{
 
         // sending jwt token
         res.cookie('token',token,{maxAge:60*60*1000}); 
-        res.status(200).send('Logged In Successfully!!');
+
+        const reply={
+            userName:people.userName,
+            emailId:people.emailId,
+            _id:people._id
+        };
+
+        res.status(200).json({
+            user:reply,
+            message:"Logged In Successfully!"
+        })
     }catch(err){
         res.status(400).send("Error : " + err.message);
     }

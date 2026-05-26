@@ -158,6 +158,27 @@ const submitCode=async(req,res)=>{
 
         await submittedCode.save();
 
+        // we have to also update the totalSubmissions and acceptedSubmissions of this problem
+        if(status=="Accepted")
+        {
+            if(DSAproblem.acceptedSubmissions)
+            {
+                DSAproblem.acceptedSubmissions+=1;
+            }
+            else
+            {
+                DSAproblem.acceptedSubmissions=1;
+            }
+        }
+
+        if(DSAproblem.totalSubmissions)
+            DSAproblem.totalSubmissions+=1;
+
+        else
+        DSAproblem.totalSubmissions=1;
+
+        await DSAproblem.save();
+
         // we have to also updated the problemSolved of user 
         const user=await User.findById(req.result);
 

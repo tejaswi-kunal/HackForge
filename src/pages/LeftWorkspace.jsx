@@ -2,13 +2,15 @@ import DescriptionTab from "./DescriptionTab";
 import EditorialTab from "./EditorialTab";
 import SolutionsTab from "./SolutionsTab";
 import SubmissionsTab from "./SubmissionsTab";
+import CommentsTab from "./CommentsTab";
 
 function LeftWorkspace({ problem, submissions, activeTab, setActiveTab }) {
     return (
         <div className="w-1/2 flex flex-col bg-white/[0.02] border border-white/[0.07] rounded-2xl overflow-hidden shadow-xl">
             {/* Tabs Navigation */}
             <div className="flex bg-[#111] border-b border-white/[0.07] px-2 overflow-x-auto no-scrollbar shrink-0">
-                {["description", "editorial", "solutions", "submissions"].map((tab) => (
+                {/* Added 'discuss' to the array */}
+                {["description", "editorial", "solutions", "submissions", "discuss"].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -29,6 +31,8 @@ function LeftWorkspace({ problem, submissions, activeTab, setActiveTab }) {
                 {activeTab === "editorial" && <EditorialTab />}
                 {activeTab === "solutions" && <SolutionsTab problem={problem} />}
                 {activeTab === "submissions" && <SubmissionsTab submissions={submissions} />}
+                {/* Render CommentsTab when discuss is active */}
+                {activeTab === "discuss" && <CommentsTab problemId={problem._id} />}
             </div>
         </div>
     );

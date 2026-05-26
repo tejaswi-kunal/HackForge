@@ -117,6 +117,11 @@ function ProblemSubmit() {
             // Refetch submissions & shift UI to show them
             const subRes = await axiosClient.get(`/problem/getSubmissions/${id}`);
             setSubmissions(subRes.data);
+
+            // NEW: Refetch Problem data to update Submit Count and Acceptance Rate live
+            const probRes = await axiosClient.get(`/problem/getProblem/${id}`);
+            setProblem(probRes.data);
+
             setActiveTab("submissions");
         } catch (err) {
             console.error(err);

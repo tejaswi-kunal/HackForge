@@ -20,11 +20,13 @@ const DIFFICULTY_STYLE = {
 };
 
 // ── Icons specific to Problems page ─────────────────────────────
-const CheckIcon = () => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
+const CheckCircleIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M7 12.5l3.5 3.5 7-7" />
     </svg>
 );
+
 const SearchIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -269,7 +271,7 @@ function Problems() {
                             >
                                 <div className="flex items-center">
                                     {problem.isSolved
-                                        ? <span className="text-emerald-400"><CheckIcon /></span>
+                                        ? <span className="text-emerald-400"><CheckCircleIcon /></span>
                                         : <span className="text-zinc-600 text-sm">{rowNum}</span>
                                     }
                                 </div>

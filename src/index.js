@@ -7,6 +7,7 @@ const redisClient=require('./config/redis');
 const ProblemRouter=require('./router/problem');
 const submissionRouter=require('./router/submission');
 const commentRouter=require('./router/comment');
+const leaderboardRouter=require('./router/leaderboard')
 const cors = require('cors');
 
 
@@ -35,6 +36,9 @@ app.use('/submission',submissionRouter);
 
 // comment
 app.use('/comment',commentRouter);
+
+// leaderboard
+app.use('/leaderboard',leaderboardRouter);
 
 
 // connection initialization

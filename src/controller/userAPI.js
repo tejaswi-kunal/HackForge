@@ -28,7 +28,8 @@ const userRegister=async (req,res)=>{
         const reply={
             userName:people.userName,
             emailId:people.emailId,
-            _id:people._id
+            _id:people._id,
+            role:people.role
         };
         res.status(201).json({
             user:reply,
@@ -78,7 +79,8 @@ const login=async (req,res)=>{
         const reply={
             userName:people.userName,
             emailId:people.emailId,
-            _id:people._id
+            _id:people._id,
+            role:people.role
         };
 
         res.status(200).json({
@@ -150,7 +152,17 @@ const getAccount=async (req,res)=>{
             throw new Error("Invalid Request Try Again")
         }
 
-        res.status(200).send(user);
+        const higherRankedUsers = await User.countDocuments({
+            totalPoints:{ $gt:user.totalPoints }
+        });
+
+        const rank = higherRankedUsers + 1;
+
+        res.status(200).json({
+            user:user,
+            rank:rank
+        });
+
         }catch(err){
             res.status(400).send("Error : " + err.message);
         }
@@ -242,6 +254,7 @@ const changePassword=async(req,res)=>{
 
         // now we can update the password 
         people.password=await bcrypt.hash(data.newPassword,10);
+        people.passwordChangedAt=Date.now();
         await people.save();
 
         return res.status(200).send("Password Updated Successfully!");
@@ -250,8 +263,38 @@ const changePassword=async(req,res)=>{
         res.status(400).send("Error "+err.message);
     }
 }
-// $2b$10$jVBeiAk5.AGz4Pw8Ipht.O1QPO15rT409A0UeLZlJL0L/Ztrd5H16
 
 // Get Public Profile
+const getPublicProfile=async(req,res)=>{
+    try{
+        const userID=req.params.id;
 
-module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword};
+        if(!userID)
+        {
+            return res.status(404).send("No Valid User Id Recieved Please Try Again!");
+        }
+
+        const user=await User.findById(userID).select("-password -passwordChangedAt -emailId -role -savedProblems -lastLogin -updatedAt -__v");
+
+        if(!user)
+        {
+            return res.status(404).send("Invalid User ID");
+        }
+
+        const higherRankedUsers = await User.countDocuments({
+            totalPoints:{ $gt:user.totalPoints }
+        });
+
+        const rank = higherRankedUsers + 1;
+
+        return res.status(200).json({
+            user:user,
+            rank:rank
+        });
+        
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword,getPublicProfile};

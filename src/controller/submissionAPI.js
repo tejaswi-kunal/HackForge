@@ -196,7 +196,81 @@ const submitCode=async(req,res)=>{
         {
             // if the current submittend problem is correct and its not in the list of solvedProblem 
             user.problemsSolved.push(problemID);
+            
+            // points update
+            if(DSAproblem.difficulty=='easy')
+            {
+                user.easySolved++;
+                user.totalPoints+=2;
+            }
+
+            else if(DSAproblem.difficulty=='medium')
+            {
+                user.mediumSolved++;
+                user.totalPoints+=4;
+            }
+
+            else
+            {
+                user.hardSolved++;
+                user.totalPoints+=8;
+            }
+
+            // streak update
+            if(!user.lastSolvedDate)
+            {
+                user.streakCount=1;
+                user.maxStreak=1;
+            }
+
+            else
+            {
+                const lastDay=new Date(user.lastSolvedDate);
+                const today=new Date();
+
+                // coverting to midnight-->since we only want day comparision we dont care about hours in each day
+                lastDay.setHours(0,0,0,0);
+                today.setHours(0,0,0,0);
+
+                const diffTime = today - lastDay;
+
+                // converting to days
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                if(diffDays==1)
+                {
+                    user.streakCount++;
+                    user.maxStreak=Math.max(user.streakCount,user.maxStreak);
+                }
+
+                else if(diffDays>1)
+                {
+                    user.streakCount=1;
+                }
+            }
+            user.lastSolvedDate=new Date();
+
+            // heat map update
+            const currDay = new Date().toISOString().split('T')[0];
+
+            const activity = user.activityCalendar.find(
+                item => item.date === currDay
+            );
+
+            if(activity)
+            {
+                activity.count++;
+            }
+
+            else
+            {
+                user.activityCalendar.push({
+                    date:currDay,
+                    count:1
+                });
+            }
         }
+
         user.submissionsCount+=1;
         await user.save();
         res.status(201).send(submittedCode);

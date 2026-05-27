@@ -1,6 +1,6 @@
 const express=require('express');
 const {userRegister,login,logout,adminRegister,getAccount,deleteAccount,
-    updateProfile,changePassword
+    updateProfile,changePassword,getPublicProfile
 }=require('../controller/userAPI');
 const userMiddleware=require('../middleware/userMiddleware');
 const adminMiddleware=require('../middleware/adminMiddleware');
@@ -12,17 +12,19 @@ authRouter.post('/register',userRegister);
 authRouter.post('/login',login);
 authRouter.post('/logout',userMiddleware,logout);
 authRouter.post('/admin/register',adminMiddleware,adminRegister);
-authRouter.get('/get/account',userMiddleware,getAccount);
+authRouter.get('/getAccount',userMiddleware,getAccount);
 authRouter.delete('/deleteAccount',userMiddleware,deleteAccount);
 authRouter.put('/updateProfile',userMiddleware,updateProfile);
-authRouter.put('/changePassword',userMiddleware,changePassword)
+authRouter.put('/changePassword',userMiddleware,changePassword);
+authRouter.get('/getPublicProfile/:id',userMiddleware,getPublicProfile);
 authRouter.get('/checkAuth',userMiddleware,async(req,res)=>{
     // we will access this api as the user visit the website using new tab,to check if he is a already Signedup user
     const user=await User.findById(req.result)
     const reply={
         userName:user.userName,
         emailId:user.emailId,
-        _id:req.result
+        _id:req.result,
+        role:user.role
     };
 
     res.status(200).json({

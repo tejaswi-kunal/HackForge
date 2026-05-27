@@ -90,6 +90,32 @@ const userSchema=Schema({
         type:Number,
         default:1200
     },
+    streakCount:{
+        type:Number,
+        default:0
+    },
+
+    maxStreak:{
+        type:Number,
+        default:0
+    },
+
+    lastSolvedDate:{
+        type:Date
+    },
+
+    activityCalendar:[
+        {
+            date:{
+                type:String
+            },
+
+            count:{
+                type:Number,
+                default:1
+            }
+        }
+    ],
     profilePicture:{
         type:String
     },

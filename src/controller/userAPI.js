@@ -3,6 +3,7 @@ const bcrypt=require('bcrypt');
 const User=require('../model/User');
 const jwt=require('jsonwebtoken');
 const redisClient = require('../config/redis');
+const validator=require('validator');
 
 const userRegister=async (req,res)=>{
     try{
@@ -202,7 +203,55 @@ const updateProfile=async(req,res)=>{
 }
 
 // Change Password
+const changePassword=async(req,res)=>{
+    try{
+        const userID=req.result;
+        const data=req.body;
+
+        // first we have to verify the old passwod
+        const people=await User.findById(userID);
+
+        if(!people)
+        {
+            return res.status(404).send("Wrong Credentials");
+        }
+
+        if(!data.oldPassword || !data.newPassword)
+        {
+            res.status(404).send("All Required Feilds Are Not Present!");
+        }
+
+        // matching the password
+        const match=await bcrypt.compare(data.oldPassword,people.password);
+
+        if(!match)
+        {
+            return res.status(400).send('Wrong Credentials!');
+        }
+
+        // validate new password
+        if(!validator.isStrongPassword(data.newPassword))
+        {
+            res.status(400).send('Weak Password!');
+        }
+
+        if (data.oldPassword === data.newPassword)
+        {
+            return res.status(400).send("Old And New Password Cannot Be Same!");
+        }
+
+        // now we can update the password 
+        people.password=await bcrypt.hash(data.newPassword,10);
+        await people.save();
+
+        return res.status(200).send("Password Updated Successfully!");
+
+    }catch(err){
+        res.status(400).send("Error "+err.message);
+    }
+}
+// $2b$10$jVBeiAk5.AGz4Pw8Ipht.O1QPO15rT409A0UeLZlJL0L/Ztrd5H16
 
 // Get Public Profile
 
-module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile};
+module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword};

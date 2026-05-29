@@ -90,6 +90,11 @@ const userSchema=Schema({
         type:Number,
         default:1200
     },
+    contestsParticipated:{
+        type:Number,
+        default:0
+    },
+
     streakCount:{
         type:Number,
         default:0

@@ -15,6 +15,12 @@ const submissionSchema=new Schema({
         required:true
     },
 
+    contestId:{
+        type:Schema.Types.ObjectId,
+        ref:"Contest",
+        default:null
+    },
+
     submittedCode:{
         language:{
             type:String,

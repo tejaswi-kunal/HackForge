@@ -24,10 +24,6 @@ const contestSchema=new Schema({
         type:Date,
         required:true
     },
-    status:{
-        type:String,
-        enum:["upcoming","running","ended"]
-    },
     problems:[
         {
             problemID:{
@@ -40,7 +36,13 @@ const contestSchema=new Schema({
                 required:true
             }
         }
-    ]
+    ],
+    contestCreator:{
+        type:Schema.Types.ObjectId,
+        ref:'User',
+        required:true
+    }
+
 });
 
 const Contest=mongoose.model('Contest',contestSchema);

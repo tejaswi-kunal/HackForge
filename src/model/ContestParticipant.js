@@ -23,7 +23,7 @@ const contestParticipantSchema=new Schema({
     },
     registeredAt:{
         type:Date,
-        default:Date.now()
+        default:Date.now
     }
 });
 

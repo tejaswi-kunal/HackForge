@@ -2,6 +2,7 @@ const {validateLanguage,getLanguageId,submitBatch,submitToken}=require("../utils
 const Submission=require("../model/Submission");
 const Problem=require("../model/Problems");
 const User=require("../model/User");
+const ContestParticipant=require('../model/ContestParticipant'); 
 
 const submitCode=async(req,res)=>{
     try{
@@ -32,6 +33,7 @@ const submitCode=async(req,res)=>{
                 language:language,
                 completeCode:code
             },
+            contest:req.body.contestID || null,
             testCasesTotal:DSAproblem.visibleTestCases.length+DSAproblem.hiddenTestCases.length
         });
 
@@ -273,6 +275,29 @@ const submitCode=async(req,res)=>{
 
         user.submissionsCount+=1;
         await user.save();
+
+
+        if(req.participant && status==='Accepted')
+        {
+            const alreadySolvedContestProblem=
+            req.participant.solvedProblems.some(
+                id=>id.toString()===problemID
+            );
+
+            if(!alreadySolvedContestProblem)
+            {
+                req.participant.solvedProblems.push(problemID);
+
+                req.participant.score+=
+                req.contestProblem.points;
+
+                req.participant.lastAcceptedTime=
+                new Date();
+
+                await req.participant.save();
+            }
+        }
+
         res.status(201).send(submittedCode);
     }catch(err){
         res.status(400).send("Error : "+err.message);

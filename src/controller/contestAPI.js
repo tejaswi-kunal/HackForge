@@ -222,5 +222,41 @@ const myRank=async(req,res)=>{
     }
 }
 
-module.exports={createContest,getRunningContest,getUpcomingContest,getEndedContest,getContest,contestRegistration,getLeaderBoard,myRank};
+const enterContest=async(req,res)=>{
+    try{
+        const contestID=req.params.id;
+        const userID=req.result;
+
+        // first we have to verify if the contest exist
+        const contest=await Contest.findById(contestID).select("-contestCreator");
+
+        if(!contest)
+        {
+            return res.status(404).send("Invalid Request!,Please Try With Valid Contest ID");
+        }
+
+        // verify if the user participated in the contest 
+        const contestPartCheck=await ContestParticipant.findOne({user:userID,contest:contestID});
+
+        if(!contestPartCheck)
+        {
+            return res.status(400).send("User Is Not Part Of This Running Contest!");
+        }
+
+        // verify if the contest is running 
+        const now = new Date();
+        if(!(now>=contest.startTime && now<=contest.endTime))
+        {
+            return res.status(400).send("Contest Is Not Running!");
+        }
+
+        res.status(200).json({
+            success:true,
+            contest
+        })
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+module.exports={createContest,getRunningContest,getUpcomingContest,getEndedContest,getContest,contestRegistration,getLeaderBoard,myRank,enterContest};
 

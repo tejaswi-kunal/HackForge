@@ -15,9 +15,9 @@ const submissionSchema=new Schema({
         required:true
     },
 
-    contestId:{
+    contest:{
         type:Schema.Types.ObjectId,
-        ref:"Contest",
+        ref:'Contest',
         default:null
     },
 

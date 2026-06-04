@@ -258,5 +258,84 @@ const enterContest=async(req,res)=>{
         res.status(400).send("Error : "+err.message);
     }
 }
-module.exports={createContest,getRunningContest,getUpcomingContest,getEndedContest,getContest,contestRegistration,getLeaderBoard,myRank,enterContest};
+
+const updateContest=async(req,res)=>{
+    try{
+        // valid contest check
+        const contestID=req.params.id;
+
+        if(!contestID)
+        {
+            return res.status(404).send("No Valid Contest ID Recieved!");
+        }
+
+        const contest=await Contest.findById(contestID);
+
+        if(!contest)
+        {
+            return res.status(404).send("Invalid Contest ID");
+        }
+
+        // check if its a upcoming contest
+        const now = new Date();
+
+        if(now>=contest.startTime)
+        {
+            return res.status(400).send("Invalid Request!,This Request Is Only Valid For Upcoming Contests");
+        }
+
+        // validate the new body
+        const {contestNumber,contestCreator,...rest}=req.body;
+        await validateContest(rest);
+
+        const updatedContest=await Contest.findByIdAndUpdate(contestID,{...rest},{runValidators:true, new:true});
+
+        res.status(200).json({
+            success:true,
+            updatedContest:updatedContest,
+            message:"Contest Updated Sucessfully!"
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const deleteContest=async(req,res)=>{
+    try{
+         // valid contest check
+        const contestID=req.params.id;
+
+        if(!contestID)
+        {
+            return res.status(404).send("No Valid Contest ID Recieved!");
+        }
+
+        const contest=await Contest.findById(contestID);
+
+        if(!contest)
+        {
+            return res.status(404).send("Invalid Contest ID");
+        }
+
+        // check if its a upcoming contest
+        const now = new Date();
+
+        if(now>=contest.startTime)
+        {
+            return res.status(400).send("Invalid Request!,This Request Is Only Valid For Upcoming Contests");
+        }
+
+        // now we can delete this contest
+        const deletedContest=await Contest.findByIdAndDelete(contestID);
+        res.status(200).send("Contest Deleted Successfully!");
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+
+
+module.exports={createContest,getRunningContest,getUpcomingContest,getEndedContest,getContest,
+    contestRegistration,getLeaderBoard,myRank,enterContest,updateContest,deleteContest};
 

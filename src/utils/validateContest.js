@@ -2,7 +2,10 @@ const Contest=require('../model/Contest');
 const Problem=require('../model/Problems');
 
 const validateContest=async(data)=>{
-    const contest=await Contest.findOne({contestNumber:data.contestNumber});
+    let contest=null;
+    
+    if(data.contestNumber)
+    contest=await Contest.findOne({contestNumber:data.contestNumber});
 
     if(contest)
     {

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import axiosClient from "../utils/axiosClient";
 import Header from "../components/Header";
-import LeftWorkspace from "./LeftWorkspace";
-import RightWorkspace from "./RightWorkspace";
+import LeftWorkspace from "../components/LeftWorkspace";
+import RightWorkspace from "../components/RightWorkspace";
 
 const LANGUAGES = [
     { id: "cpp", name: "C++" },
@@ -53,11 +53,14 @@ function ProblemSubmit() {
                 setProblem(fetchedProblem);
                 
                 // Initialize Editor with DB Starter Code
+                // by default we are keeping cpp as our default language when the problem opens
                 let initialLang = "cpp";
                 setLanguage(initialLang);
+                // finding the intial code 
                 const dbStarter = fetchedProblem.starterCode?.find(s => s.language === initialLang);
                 setCode(dbStarter ? dbStarter.initialCode : DEFAULT_CODE[initialLang]);
 
+                // fetching the past submissions of the user
                 const subRes = await axiosClient.get(`/problem/getSubmissions/${id}`);
                 setSubmissions(subRes.data);
             } catch (err) {
@@ -83,6 +86,7 @@ function ProblemSubmit() {
         setSubmitResult(null);
     };
 
+    // code run
     const handleRunCode = async () => {
         if (!code.trim()) return;
         setIsRunning(true);
@@ -102,6 +106,7 @@ function ProblemSubmit() {
         }
     };
 
+    // submit code
     const handleSubmitCode = async () => {
         if (!code.trim()) return;
         setIsSubmitting(true);
@@ -118,7 +123,7 @@ function ProblemSubmit() {
             const subRes = await axiosClient.get(`/problem/getSubmissions/${id}`);
             setSubmissions(subRes.data);
 
-            // NEW: Refetch Problem data to update Submit Count and Acceptance Rate live
+            // NEW: Refetch Problem data to update Submit Count and Acceptance Rate live-->Important
             const probRes = await axiosClient.get(`/problem/getProblem/${id}`);
             setProblem(probRes.data);
 

@@ -1,137 +1,221 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../redux/authSlice";
-
-// ── Icons ─────────────────────────────────────────────────────
-// arrow up and arrow down icon ,on the basis on the basis of dropdown:T/F
-const ChevronIcon = ({ open }) => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round"
-        style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>
-        <polyline points="6 9 12 15 18 9"/>
-    </svg>
-);
-
-const LogoutIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/>
-        <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-);
+import { User, Settings, Key, Shield, Trash2, LogOut, AlertTriangle, ChevronDown, Flame } from "lucide-react";
+import axiosClient from "../utils/axiosClient";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Header() {
-    // to check if the dropdown menu is oprn or not 
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    // to store the ref of DOM element->dropdown menue ,and use it directly to access the properties of the 
-    // dom element 
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation(); // Used to track active tab
     const dispatch = useDispatch();
+    
     const { loading, user } = useSelector((state) => state.authSlice);
     
-    // Close dropdown on outside click using dropdown refrence stored in dropdownRef
+    // Close dropdown on outside click
     useEffect(() => {
         const handleOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target))
-                setDropdownOpen(false);
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
         };
         document.addEventListener("mousedown", handleOutside);
         return () => document.removeEventListener("mousedown", handleOutside);
     }, []);
  
     const getInitials = (name) => name ? name.slice(0, 2).toUpperCase() : "?";
+
+    const confirmDeleteAccount = async () => {
+        setIsDeleting(true);
+        try {
+            await axiosClient.delete('/auth/deleteAccount');
+            dispatch(logoutUser());
+            setShowDeleteModal(false);
+            navigate('/login');
+        } catch (err) {
+            console.error("Failed to delete account", err);
+            setIsDeleting(false);
+        }
+    };
+
+    // Navigation Items
+    const navItems = [
+        { label: "Problems", path: "/problems" },
+        { label: "Contests",  path: "/contest"  },
+        { label: "Leaderboard",  path: "/leaderboard"  },
+    ];
  
     return (
-        <header className="relative z-20 border-b border-white/[0.06] bg-black/50 backdrop-blur-xl sticky top-0">
-            <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
-                {/* Logo navigating to homepage */}
-                <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-                    <div className="w-7 h-7 rounded-lg bg-[#C9963A] flex items-center justify-center">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="16 18 22 12 16 6"/>
-                            <polyline points="8 6 2 12 8 18"/>
-                        </svg>
+        <>
+            <header className="relative z-40 border-b border-white/[0.04] bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0">
+                <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
+                    
+                    {/* Logo */}
+                    <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C9963A] to-[#E0B455] flex items-center justify-center shadow-[0_0_15px_rgba(201,150,58,0.3)] group-hover:scale-105 transition-transform duration-300">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                            </svg>
+                        </div>
+                        <span className="text-white font-bold text-sm tracking-widest uppercase">HackForge</span>
                     </div>
-                    <span className="text-white font-semibold text-sm tracking-wide">DevCode</span>
-                </div>
 
-                {/* Navigation menu */}
-                <nav className="hidden md:flex items-center gap-1">
-                    {[
-                        { label: "Problems", path: "/problems" },
-                        { label: "Contest",  path: "/contest"  },
-                        { label: "Discuss",  path: "/discuss"  },
-                    ].map(({ label, path }) => (
-                        <button key={label} onClick={() => navigate(path)}
-                            className="px-4 py-2 rounded-xl text-zinc-500 text-sm hover:text-white hover:bg-white/[0.05] transition-all duration-200">
-                            {label}
-                        </button>
-                    ))}
-                </nav>
-                    
-                {/* Streaks and User Dropdown */}
-                <div className="flex items-center gap-3">
-                    <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.07]">
-                        <span className="text-sm">🔥</span>
-                        <span className="text-zinc-400 text-xs">0 streak</span>
-                    </div>
-                    
-                    {/* maintaining the dropdown menu */}
-                    <div className="relative" ref={dropdownRef}>
-                        <button
-                            onClick={() => setDropdownOpen(v => !v)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                                bg-white/[0.04] border border-white/[0.08]
-                                hover:border-[#C9963A]/35 hover:bg-white/[0.07]
-                                transition-all duration-200"
-                        >
-                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#C9963A] to-[#E0B455] flex items-center justify-center">
-                                <span className="text-black text-[10px] font-bold">{getInitials(user?.userName)}</span>
-                            </div>
-                            <span className="text-white text-sm font-medium max-w-[110px] truncate">
-                                {user?.userName || "User"}
-                            </span>
-                            <ChevronIcon open={dropdownOpen} />
-                        </button>
- 
-                        {dropdownOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-52
-                                bg-[#111] border border-white/[0.08]
-                                rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)]
-                                overflow-hidden z-50">
-                                {/* maintaining the username and the emailid */}
-                                <div className="px-4 py-3 border-b border-white/[0.06]">
-                                    {/* this is the one which we have to change to button see the profile page */}
-                                    <p className="text-white text-sm font-medium truncate">{user?.userName || "User"}</p>
-                                    <p className="text-zinc-600 text-xs mt-0.5 truncate">{user?.emailId || ""}</p>
+                    {/* Main Navigation with Framer Motion Sliding Tab */}
+                    <nav className="hidden md:flex items-center gap-2">
+                        {navItems.map((item) => {
+                            const isActive = location.pathname.startsWith(item.path);
+                            return (
+                                <button 
+                                    key={item.label} 
+                                    onClick={() => navigate(item.path)} 
+                                    className={`relative px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                >
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeNavTab"
+                                            className="absolute inset-0 bg-white/[0.08] border border-white/[0.04] rounded-xl"
+                                            initial={false}
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        />
+                                    )}
+                                    <span className="relative z-10">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                        
+                    {/* Right Actions */}
+                    <div className="flex items-center gap-4">
+                        
+                        {/* Streak Badge */}
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20">
+                            <Flame size={16} className="text-orange-500" />
+                            <span className="text-white font-bold text-xs">{user?.streak || user?.streakCount || 0}</span>
+                            <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Streak</span>
+                        </div>
+                        
+                        {/* Dropdown Wrapper */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button 
+                                onClick={() => setDropdownOpen(v => !v)} 
+                                className={`flex items-center gap-3 px-2 py-1.5 rounded-xl border transition-all duration-300 ${dropdownOpen ? 'bg-white/[0.08] border-[#C9963A]/40' : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/10'}`}
+                            >
+                                <div className="w-7 h-7 rounded-lg bg-[#1a1a1a] border border-[#C9963A]/30 flex items-center justify-center shadow-inner">
+                                    <span className="text-[#C9963A] text-xs font-bold">{getInitials(user?.userName)}</span>
                                 </div>
-
-                                {/* maintaining the logout */}
-                                <div className="p-1.5">
-                                    <button
-                                        onClick={() => { setDropdownOpen(false); dispatch(logoutUser()); }}
-                                        disabled={loading}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                                            text-red-400 text-sm text-left
-                                            hover:bg-red-500/10 disabled:opacity-50
-                                            transition-colors duration-150"
+                                <span className="text-white text-sm font-semibold max-w-[100px] truncate hidden sm:block">
+                                    {user?.userName || "User"}
+                                </span>
+                                <motion.div animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                    <ChevronDown size={14} className="text-zinc-400 mr-1" />
+                                </motion.div>
+                            </button>
+    
+                            {/* Animated Dropdown Menu */}
+                            <AnimatePresence>
+                                {dropdownOpen && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.15, ease: "easeOut" }}
+                                        className="absolute right-0 top-[calc(100%+8px)] w-60 bg-[#111] border border-white/[0.08] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden z-50 origin-top-right"
                                     >
-                                        {loading
-                                            ? <span className="loading loading-spinner loading-xs text-red-400" />
-                                            : <LogoutIcon />
-                                        }
-                                        {loading ? "Logging out..." : "Logout"}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                                        {/* User Info Header */}
+                                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                                            <p className="text-white text-sm font-bold truncate">{user?.userName || "User"}</p>
+                                            <p className="text-zinc-500 text-xs mt-0.5 truncate font-medium">{user?.emailId || ""}</p>
+                                        </div>
+
+                                        {/* Menu Actions */}
+                                        <div className="p-2 flex flex-col gap-1">
+                                            
+                                            <button onClick={() => { setDropdownOpen(false); navigate('/profile'); }} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 text-sm font-medium hover:bg-white/[0.06] hover:text-white transition-colors">
+                                                <User size={16} className="text-zinc-400" /> Profile
+                                            </button>
+
+                                            {user?.role === 'admin' && (
+                                                <button onClick={() => { setDropdownOpen(false); navigate('/admin'); }} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#C9963A] text-sm font-bold hover:bg-[#C9963A]/10 transition-colors">
+                                                    <Shield size={16} /> Admin Panel
+                                                </button>
+                                            )}
+
+                                            <button onClick={() => { setDropdownOpen(false); navigate('/settings/edit-profile'); }} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 text-sm font-medium hover:bg-white/[0.06] hover:text-white transition-colors">
+                                                <Settings size={16} className="text-zinc-400" /> Edit Profile
+                                            </button>
+
+                                            <button onClick={() => { setDropdownOpen(false); navigate('/settings/change-password'); }} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 text-sm font-medium hover:bg-white/[0.06] hover:text-white transition-colors">
+                                                <Key size={16} className="text-zinc-400" /> Change Password
+                                            </button>
+
+                                            {/* Danger Zone Divider */}
+                                            <div className="h-[1px] bg-white/[0.06] my-1 mx-2"></div>
+                                            
+                                            <button onClick={() => { setDropdownOpen(false); dispatch(logoutUser()); }} disabled={loading} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 text-sm font-bold hover:bg-red-500/10 transition-colors">
+                                                {loading ? <span className="loading loading-spinner loading-xs border-red-400"></span> : <LogOut size={16} />} 
+                                                Logout
+                                            </button>
+
+                                            <button onClick={() => { setDropdownOpen(false); setShowDeleteModal(true); }} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 text-sm font-bold hover:bg-red-500/10 transition-colors">
+                                                <Trash2 size={16} /> Delete Account
+                                            </button>
+                                            
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
+
+            {/* CUSTOM DELETE CONFIRMATION MODAL */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md px-4"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-[#111] border border-red-500/20 rounded-3xl p-8 max-w-md w-full shadow-[0_20px_60px_rgba(239,68,68,0.15)] relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-900"></div>
+                            <div className="flex items-center gap-4 mb-5 text-red-500">
+                                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <h2 className="text-xl font-bold text-white tracking-wide">Delete Account?</h2>
+                            </div>
+                            <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
+                                Are you absolutely sure? This action <strong className="text-white font-semibold">cannot be undone</strong>. All of your solved problems, streaks, points, and account data will be permanently erased.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <button 
+                                    onClick={() => setShowDeleteModal(false)} 
+                                    disabled={isDeleting}
+                                    className="px-5 py-2.5 rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-bold"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={confirmDeleteAccount} 
+                                    disabled={isDeleting}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 transition-all text-sm font-bold shadow-lg disabled:opacity-50"
+                                >
+                                    {isDeleting ? <span className="loading loading-spinner loading-xs border-current"></span> : <Trash2 size={16} />}
+                                    Yes, Delete My Account
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }
 

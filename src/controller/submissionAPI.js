@@ -251,26 +251,26 @@ const submitCode=async(req,res)=>{
                 }
             }
             user.lastSolvedDate=new Date();
+        }
 
-            // heat map update
-            const currDay = new Date().toISOString().split('T')[0];
+        // heat map update
+        const currDay = new Date().toISOString().split('T')[0];
 
-            const activity = user.activityCalendar.find(
-                item => item.date === currDay
-            );
+        const activity = user.activityCalendar.find(
+            item => item.date === currDay
+        );
 
-            if(activity)
-            {
-                activity.count++;
-            }
+        if(activity)
+        {
+            activity.count++;
+        }
 
-            else
-            {
-                user.activityCalendar.push({
-                    date:currDay,
-                    count:1
-                });
-            }
+        else
+        {
+            user.activityCalendar.push({
+                date:currDay,
+                count:1
+            });
         }
 
         user.submissionsCount+=1;

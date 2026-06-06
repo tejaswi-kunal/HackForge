@@ -2,13 +2,13 @@ const User = require("../model/User");
 
 const getLeaderboard=async(req,res)=>{
     try{
-        const page=Number(req.params.page)||1;
-        const limit=Number(req.params.limit)||10
+        const page=Number(req.query.page)||1;
+        const limit=Number(req.query.limit)||10
 
         const skip=(page-1)*limit;
 
         const users=await User.find({})
-        .select("userName profilePicture totalPoints")
+        .select("_id userName profilePicture totalPoints")
         .sort({totalPoints:-1})
         .skip(skip)
         .limit(limit);

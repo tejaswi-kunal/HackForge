@@ -4,6 +4,48 @@ const User=require('../model/User');
 const jwt=require('jsonwebtoken');
 const redisClient = require('../config/redis');
 const validator=require('validator');
+const Submission=require('../model/Submission');
+
+const getUserSubmissions=async(req,res)=>{
+    try{
+        const userID=req.result;
+
+        const page=Number(req.query.page)||1;
+        const limit=Number(req.query.limit)||10;
+
+        const skip=(page-1)*limit;
+
+        const user=await User.findById(userID);
+
+        if(!user)
+        {
+            return res.status(404).send("Invalid User ID");
+        }
+
+        const submissions=await Submission.find({
+            user:userID
+        })
+        .populate('problem','title difficulty')
+        .sort({createdAt:-1})
+        .skip(skip)
+        .limit(limit);
+
+        const totalSubmissions=await Submission.countDocuments({
+            user:userID
+        });
+
+        return res.status(200).json({
+            submissions,
+            totalSubmissions,
+            currentPage:page,
+            totalPages:Math.ceil(totalSubmissions/limit)
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
 
 const userRegister=async (req,res)=>{
     try{
@@ -29,6 +71,7 @@ const userRegister=async (req,res)=>{
             userName:people.userName,
             emailId:people.emailId,
             _id:people._id,
+            streak:people.streakCount,
             role:people.role
         };
         res.status(201).json({
@@ -80,6 +123,7 @@ const login=async (req,res)=>{
             userName:people.userName,
             emailId:people.emailId,
             _id:people._id,
+            streak:people.streakCount,
             role:people.role
         };
 
@@ -297,4 +341,4 @@ const getPublicProfile=async(req,res)=>{
     }
 }
 
-module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword,getPublicProfile};
+module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword,getPublicProfile,getUserSubmissions};

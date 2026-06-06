@@ -1,6 +1,6 @@
 const express=require('express');
 const {userRegister,login,logout,adminRegister,getAccount,deleteAccount,
-    updateProfile,changePassword,getPublicProfile
+    updateProfile,changePassword,getPublicProfile,getUserSubmissions
 }=require('../controller/userAPI');
 const userMiddleware=require('../middleware/userMiddleware');
 const adminMiddleware=require('../middleware/adminMiddleware');
@@ -17,6 +17,7 @@ authRouter.delete('/deleteAccount',userMiddleware,deleteAccount);
 authRouter.put('/updateProfile',userMiddleware,updateProfile);
 authRouter.put('/changePassword',userMiddleware,changePassword);
 authRouter.get('/getPublicProfile/:id',userMiddleware,getPublicProfile);
+authRouter.get('/getUserSubmissions',userMiddleware,getUserSubmissions);
 authRouter.get('/checkAuth',userMiddleware,async(req,res)=>{
     // we will access this api as the user visit the website using new tab,to check if he is a already Signedup user
     const user=await User.findById(req.result)
@@ -24,6 +25,7 @@ authRouter.get('/checkAuth',userMiddleware,async(req,res)=>{
         userName:user.userName,
         emailId:user.emailId,
         _id:req.result,
+        streak:user.streakCount,
         role:user.role
     };
 

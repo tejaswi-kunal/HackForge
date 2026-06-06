@@ -1,8 +1,9 @@
 const express=require('express');
 const {createProblem,updateProblem,deleteProblem,getProblem,
     getAllProblems,filterProblems,getAllProblemsSolvedByUser,
-    getNumberOfProblemsSolvedByUser,saveProblem,getSavedProblems,
-    getSubmissions,likeProblem,dislikeProblem,userProblemReaction}
+    saveProblem,getSavedProblems,
+    getSubmissions,likeProblem,dislikeProblem,userProblemReaction,
+    getProblemStats,checkSaved}
             = require('../controller/problemAPI');
    
 const adminMiddleware=require('../middleware/adminMiddleware');
@@ -18,13 +19,14 @@ ProblemRouter.get('/getProblem/:id',userMiddleware,getProblem);
 ProblemRouter.get('/getAllProblem',userMiddleware,getAllProblems);
 ProblemRouter.get('/filter',userMiddleware,filterProblems);
 ProblemRouter.get('/getAllProblemSolvedByUser',userMiddleware,getAllProblemsSolvedByUser);
-ProblemRouter.get('/getNumberOfProblemsSolvedByUser',userMiddleware,getNumberOfProblemsSolvedByUser);
 ProblemRouter.post('/saveProblem/:id',userMiddleware,saveProblem);
 ProblemRouter.get('/getSavedProblems',userMiddleware,getSavedProblems);
 ProblemRouter.get('/getSubmissions/:id',userMiddleware,getSubmissions);
 ProblemRouter.post('/like/:id',userMiddleware,likeProblem);
 ProblemRouter.post('/dislike/:id',userMiddleware,dislikeProblem);
 ProblemRouter.get('/reaction/:id',userMiddleware,userProblemReaction);
+ProblemRouter.get('/getProblemStats',userMiddleware,getProblemStats);
+ProblemRouter.get('/checkSaved/:id',userMiddleware,checkSaved);
 
 module.exports=ProblemRouter;
 

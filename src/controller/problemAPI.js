@@ -345,21 +345,6 @@ const getAllProblemsSolvedByUser=async(req,res)=>{
 
 }
 
-const getNumberOfProblemsSolvedByUser=async(req,res)=>{
-    try{
-        const user=await User.findById(req.result);
-
-        if(!user) 
-        {
-            return res.status(404).send("User Not Found!");
-        }
-        
-        res.status(200).send({count:user.problemsSolved.length});
-    }catch(err){
-        res.status(400).send("Error : "+err.message);
-    }
-}
-
 const saveProblem=async(req,res)=>{
     try{
         const id=req.params.id;
@@ -656,8 +641,53 @@ const userProblemReaction=async(req,res)=>{
     }
 }
 
+const getProblemStats=async(req,res)=>{
+    try{
+
+        const [
+            totalProblems,
+            easyProblems,
+            mediumProblems,
+            hardProblems
+        ] = await Promise.all([
+            Problem.countDocuments(),
+            Problem.countDocuments({difficulty:'easy'}),
+            Problem.countDocuments({difficulty:'medium'}),
+            Problem.countDocuments({difficulty:'hard'})
+        ]);
+
+        res.status(200).json({
+            totalProblems,
+            easyProblems,
+            mediumProblems,
+            hardProblems
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const checkSaved=async(req,res)=>{
+    try{
+        const problemID=req.params.id;
+        const userID=req.result;
+
+        // we have to check if the saved prblem array includes prblemid
+        const user=await User.findById(userID);
+        const check=user.savedProblems.some((id)=>id.toString()===problemID);
+
+        return res.status(200).json({
+            isSaved:check
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
 
 
 module.exports={createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,
-    filterProblems,getAllProblemsSolvedByUser,getNumberOfProblemsSolvedByUser,saveProblem,getSavedProblems,
-    getSubmissions,likeProblem,dislikeProblem,userProblemReaction};
+    filterProblems,getAllProblemsSolvedByUser,saveProblem,getSavedProblems,
+    getSubmissions,likeProblem,dislikeProblem,userProblemReaction,getProblemStats,checkSaved};

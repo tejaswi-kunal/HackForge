@@ -67,11 +67,31 @@ const userRegister=async (req,res)=>{
 
         // sending jwt token 
         res.cookie('token',token,{maxAge:60*60*1000});
+
+        let currentStreak = people.streakCount;
+
+        if(people.lastSolvedDate)
+        {
+            const lastDay = new Date(people.lastSolvedDate);
+            const today = new Date();
+            
+            lastDay.setUTCHours(0,0,0,0);
+            today.setUTCHours(0,0,0,0);
+
+            const diffDays =
+                (today - lastDay) / (1000 * 60 * 60 * 24);
+
+            if(diffDays > 1)
+            {
+                currentStreak = 0;
+            }
+        }
+
         const reply={
             userName:people.userName,
             emailId:people.emailId,
             _id:people._id,
-            streak:people.streakCount,
+            streak:currentStreak,
             role:people.role
         };
         res.status(201).json({
@@ -119,11 +139,30 @@ const login=async (req,res)=>{
         // sending jwt token
         res.cookie('token',token,{maxAge:60*60*1000}); 
 
+        let currentStreak = people.streakCount;
+
+        if(people.lastSolvedDate)
+        {
+            const lastDay = new Date(people.lastSolvedDate);
+            const today = new Date();
+            
+            lastDay.setUTCHours(0,0,0,0);
+            today.setUTCHours(0,0,0,0);
+
+            const diffDays =
+                (today - lastDay) / (1000 * 60 * 60 * 24);
+
+            if(diffDays > 1)
+            {
+                currentStreak = 0;
+            }
+        }
+
         const reply={
             userName:people.userName,
             emailId:people.emailId,
             _id:people._id,
-            streak:people.streakCount,
+            streak:currentStreak,
             role:people.role
         };
 
@@ -175,7 +214,38 @@ const adminRegister=async (req,res)=>{
 
         // sending jwt token 
         res.cookie('token',token,{maxAge:60*60*1000});
-        res.status(201).send('Admin Registered Successfully!');
+
+                let currentStreak = people.streakCount;
+
+        if(people.lastSolvedDate)
+        {
+            const lastDay = new Date(people.lastSolvedDate);
+            const today = new Date();
+            
+            lastDay.setUTCHours(0,0,0,0);
+            today.setUTCHours(0,0,0,0);
+
+            const diffDays =
+                (today - lastDay) / (1000 * 60 * 60 * 24);
+
+            if(diffDays > 1)
+            {
+                currentStreak = 0;
+            }
+        }
+
+        const reply={
+            userName:people.userName,
+            emailId:people.emailId,
+            _id:people._id,
+            streak:currentStreak,
+            role:people.role
+        };
+
+        res.status(200).json({
+            user:reply,
+            message:"Admin Registered Successfully!"
+        });
 
     }catch(err){
         res.status(400).send("Error : " + err.message);
@@ -202,9 +272,32 @@ const getAccount=async (req,res)=>{
 
         const rank = higherRankedUsers + 1;
 
+        // streak bug resolved
+        let currentStreak = user.streakCount;
+
+        if(user.lastSolvedDate)
+        {
+            const lastDay = new Date(user.lastSolvedDate);
+            const today = new Date();
+            
+            lastDay.setUTCHours(0,0,0,0);
+            today.setUTCHours(0,0,0,0);
+
+            const diffDays =
+                (today - lastDay) / (1000 * 60 * 60 * 24);
+
+            if(diffDays > 1)
+            {
+                currentStreak = 0;
+            }
+        }
+
         res.status(200).json({
-            user:user,
-            rank:rank
+            user:{
+                ...user.toObject(),
+                streakCount: currentStreak
+            },
+            rank: rank
         });
 
         }catch(err){
@@ -331,9 +424,32 @@ const getPublicProfile=async(req,res)=>{
 
         const rank = higherRankedUsers + 1;
 
-        return res.status(200).json({
-            user:user,
-            rank:rank
+        // streak bug resolved
+        let currentStreak = user.streakCount;
+
+        if(user.lastSolvedDate)
+        {
+            const lastDay = new Date(user.lastSolvedDate);
+            const today = new Date();
+            
+            lastDay.setUTCHours(0,0,0,0);
+            today.setUTCHours(0,0,0,0);
+
+            const diffDays =
+                (today - lastDay) / (1000 * 60 * 60 * 24);
+
+            if(diffDays > 1)
+            {
+                currentStreak = 0;
+            }
+        }
+
+        res.status(200).json({
+            user:{
+                ...user.toObject(),
+                streakCount: currentStreak
+            },
+            rank: rank
         });
         
     }catch(err){

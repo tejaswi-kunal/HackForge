@@ -5,11 +5,12 @@ const {userRegister,login,logout,adminRegister,getAccount,deleteAccount,
 const userMiddleware=require('../middleware/userMiddleware');
 const adminMiddleware=require('../middleware/adminMiddleware');
 const User=require('../model/User'); 
+const {authRateLimiter}=require('../utils/rateLimiter');
 
 const authRouter=express.Router();
 
-authRouter.post('/register',userRegister);
-authRouter.post('/login',login);
+authRouter.post('/register',authRateLimiter,userRegister);
+authRouter.post('/login',authRateLimiter,login);
 authRouter.post('/logout',userMiddleware,logout);
 authRouter.post('/admin/register',adminMiddleware,adminRegister);
 authRouter.get('/getAccount',userMiddleware,getAccount);

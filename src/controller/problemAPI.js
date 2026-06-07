@@ -686,8 +686,37 @@ const checkSaved=async(req,res)=>{
     }
 }
 
+const unsaveProblem=async(req,res)=>{
+    try{
+        const problemID=req.params.id;
 
+        // first we have to check the problemid
+        if(!problemID)
+        {
+            return res.status(404).send("Try With A Valid Problem ID");
+        }
+
+        const DSAproblem=await Problem.findById(problemID);
+        if(!DSAproblem)
+        {
+            return res.status(404).send("Try With A Valid Problem ID");
+        }
+
+        const user=await User.findById(req.result);
+        user.savedProblems=user.savedProblems.filter((id)=>id.toString()!=problemID);
+
+        await user.save();
+
+        res.status(200).json({
+            success:true,
+            message:"Problem Is Removed From The Saved List Of Problems"
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
 
 module.exports={createProblem,updateProblem,deleteProblem,getProblem,getAllProblems,
     filterProblems,getAllProblemsSolvedByUser,saveProblem,getSavedProblems,
-    getSubmissions,likeProblem,dislikeProblem,userProblemReaction,getProblemStats,checkSaved};
+    getSubmissions,likeProblem,dislikeProblem,userProblemReaction,getProblemStats,checkSaved,unsaveProblem};

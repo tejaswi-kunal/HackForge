@@ -3,6 +3,7 @@ const Problem=require('../model/Problems');
 const User = require('../model/User');
 const Submission=require('../model/Submission');
 const Reaction = require('../model/Reaction');
+const solutionVideo=require('../model/solutionVideo');
 
 const createProblem=async(req,res)=>{
     try{
@@ -117,6 +118,17 @@ const getProblem=async(req,res)=>{
             ...DSAproblem.toObject(),
             isSolved: solvedSet.has(id)
         };
+
+        const videos = await SolutionVideo.findOne({problemId:id});
+
+        if(videos){    
+        updatedDSAproblem.secureUrl = videos.secureUrl;
+        updatedDSAproblem.cloudinaryPublicId = videos.cloudinaryPublicId;
+        updatedDSAproblem.thumbnailUrl = videos.thumbnailUrl;
+        updatedDSAproblem.duration = videos.duration;
+
+        return res.status(200).send(updatedDSAproblem);
+        }
 
         res.status(200).send(updatedDSAproblem);
 

@@ -9,6 +9,7 @@ const submissionRouter=require('./router/submission');
 const commentRouter=require('./router/comment');
 const leaderboardRouter=require('./router/leaderboard');
 const contestRouter=require('./router/contest');
+const videoRouter=require('./router/videoCreater');
 const cors = require('cors');
 
 
@@ -43,6 +44,9 @@ app.use('/leaderboard',leaderboardRouter);
 
 // contest
 app.use('/contest',contestRouter);
+
+// video creator
+app.use('/video',videoRouter);
 
 
 // connection initialization

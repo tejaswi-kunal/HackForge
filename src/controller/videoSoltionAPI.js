@@ -1,7 +1,7 @@
 const cloudinary = require('cloudinary').v2;
 const Problem = require("../model/Problems");
 const User = require("../model/User");
-const SolutionVideo = require("../model/solutionVideo");
+const SolutionVideo=require('../model/solutionVideo');
 const { sanitizeFilter } = require('mongoose');
 
 
@@ -32,7 +32,7 @@ const generateUploadSignature = async (req, res) => {
       public_id: publicId,
     };
 
-    // Generate signature
+    // Generate signature using the secret key and the params
     const signature = cloudinary.utils.api_sign_request(
       uploadParams,
       process.env.CLOUDINARY_API_SECRET
@@ -44,7 +44,7 @@ const generateUploadSignature = async (req, res) => {
       public_id: publicId,
       api_key: process.env.CLOUDINARY_API_KEY,
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      upload_url: `https://api.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
+      upload_url: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
     });
 
   } catch (error) {
@@ -77,9 +77,7 @@ const saveVideoMetadata = async (req, res) => {
 
     // Check if video already exists for this problem and user
     const existingVideo = await SolutionVideo.findOne({
-      problemId,
-      userId,
-      cloudinaryPublicId
+      problemId
     });
 
     if (existingVideo) {
@@ -87,17 +85,17 @@ const saveVideoMetadata = async (req, res) => {
     }
 
     const thumbnailUrl = cloudinary.url(cloudinaryResource.public_id, {
-    resource_type: 'image',  
-    transformation: [
-    { width: 400, height: 225, crop: 'fill' },
-    { quality: 'auto' },
-    { start_offset: 'auto' }  
-    ],
-    format: 'jpg'
-    });
+      resource_type: "video",
+      format: "jpg",
+      transformation: [
+          {
+              start_offset: "5"
+          }
+      ]
+  });
 
     // Create video solution record
-    const videoSolution = new SolutionVideo({
+    const videoSolution = await SolutionVideo.create({
       problemId,
       userId,
       cloudinaryPublicId,
@@ -106,16 +104,13 @@ const saveVideoMetadata = async (req, res) => {
       thumbnailUrl
     });
 
-    await SolutionVideo.save();
-
-
     res.status(201).json({
       message: 'Video solution saved successfully',
       videoSolution: {
-        id: SolutionVideo._id,
-        thumbnailUrl: SolutionVideo.thumbnailUrl,
-        duration: SolutionVideo.duration,
-        uploadedAt: SolutionVideo.createdAt
+        id: videoSolution._id,
+        thumbnailUrl: videoSolution.thumbnailUrl,
+        duration: videoSolution.duration,
+        uploadedAt: videoSolution.createdAt
       }
     });
 
@@ -128,10 +123,10 @@ const saveVideoMetadata = async (req, res) => {
 
 const deleteVideo = async (req, res) => {
   try {
-    const { videoId } = req.params;
+    const { problemId } = req.params;
     const userId = req.result;
 
-    const video = await SolutionVideo.findByIdAndDelete(videoId);
+    const video = await SolutionVideo.findOneAndDelete({problemId:problemId});
     
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });

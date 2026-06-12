@@ -17,7 +17,10 @@ const createProblem=async(req,res)=>{
         problemCreator:req.result
     });
 
-    res.status(201).send("Problem Created Successfully!");
+    res.status(201).json({
+        message: "Problem Created Successfully!",
+        problemId: question._id 
+    });
 
 
     }catch(err){
@@ -119,7 +122,7 @@ const getProblem=async(req,res)=>{
             isSolved: solvedSet.has(id)
         };
 
-        const videos = await SolutionVideo.findOne({problemId:id});
+        const videos = await solutionVideo.findOne({problemId:id});
 
         if(videos){    
         updatedDSAproblem.secureUrl = videos.secureUrl;

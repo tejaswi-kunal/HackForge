@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@theme {
+  /* 1. Sets Plus Jakarta Sans as the default for all normal text */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  
+  /* 2. Creates the 'font-display' class for your big headings and numbers */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  
+  /* 3. Sets JetBrains Mono for your code blocks using 'font-mono' */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 4. Define your animation keyframes using standard CSS */
+@keyframes shrink {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}

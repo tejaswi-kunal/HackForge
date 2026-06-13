@@ -192,31 +192,6 @@ const submitCode=async(req,res)=>{
         if(status=="Accepted")
         {
             user.acceptedSubmissions+=1;
-        }
-
-        if(!user.problemsSolved.includes(problemID) && status=='Accepted')
-        {
-            // if the current submittend problem is correct and its not in the list of solvedProblem 
-            user.problemsSolved.push(problemID);
-            
-            // points update
-            if(DSAproblem.difficulty=='easy')
-            {
-                user.easySolved++;
-                user.totalPoints+=2;
-            }
-
-            else if(DSAproblem.difficulty=='medium')
-            {
-                user.mediumSolved++;
-                user.totalPoints+=4;
-            }
-
-            else
-            {
-                user.hardSolved++;
-                user.totalPoints+=8;
-            }
 
             // streak update
             if(!user.lastSolvedDate)
@@ -251,6 +226,31 @@ const submitCode=async(req,res)=>{
                 }
             }
             user.lastSolvedDate=new Date();
+        }
+
+        if(!user.problemsSolved.includes(problemID) && status=='Accepted')
+        {
+            // if the current submittend problem is correct and its not in the list of solvedProblem 
+            user.problemsSolved.push(problemID);
+            
+            // points update
+            if(DSAproblem.difficulty=='easy')
+            {
+                user.easySolved++;
+                user.totalPoints+=2;
+            }
+
+            else if(DSAproblem.difficulty=='medium')
+            {
+                user.mediumSolved++;
+                user.totalPoints+=4;
+            }
+
+            else
+            {
+                user.hardSolved++;
+                user.totalPoints+=8;
+            }
         }
 
         // heat map update

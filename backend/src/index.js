@@ -12,6 +12,7 @@ const contestRouter=require('./router/contest');
 const videoRouter=require('./router/videoCreater');
 const adminRouter=require('./router/adminRoute');
 const cors = require('cors');
+const aiRouter = require('./router/aiRouter');
 
 
 // app initialization
@@ -51,6 +52,9 @@ app.use('/video',videoRouter);
 
 // admin routes
 app.use('/admin',adminRouter);
+
+// ChatAI
+app.use('/ai',aiRouter);
 
 
 // connection initialization

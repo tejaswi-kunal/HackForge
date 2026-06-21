@@ -18,7 +18,15 @@ const getChatHistory = async (req, res) => {
         const historyData = await redisClient.get(redisKey);
         const history = historyData ? JSON.parse(historyData) : [];
         
-        res.status(200).json(history);
+        
+        const frontendHistory = history.map(msg => ({
+            role: msg.role,
+            ...(msg.role === 'ai'
+                ? { data: msg.data }
+                : { data: msg.text })
+        }));
+
+        res.status(200).json(frontendHistory);
     } catch (error) {
         console.error("Redis Fetch Error:", error);
         res.status(500).json({ error: "Failed To Fetch Chat History" });
@@ -457,15 +465,7 @@ const sendMessage = async (req, res) => {
 
         // 7. Update Redis History Array
         history.push({ role: 'user', text: userMessage });
-        history.push({ role: 'ai', text: aiResponseText });
 
-        // Cap history length to the last 20 messages (10 interactions) to manage Redis RAM and Token limits
-        if (history.length > 20) {
-            history = history.slice(history.length - 20);
-        }
-
-        // 8. Save back to Redis (86400 seconds = 24 hours TTL)
-        await redisClient.setEx(redisKey, 86400, JSON.stringify(history));
 
         // 9. Send response back to the frontend
         let parsedResponse;
@@ -484,6 +484,16 @@ const sendMessage = async (req, res) => {
                 content: aiResponseText
             };
         }
+
+        history.push({ role: 'ai', data: parsedResponse ,text:aiResponseText});
+
+        // Cap history length to the last 20 messages (10 interactions) to manage Redis RAM and Token limits
+        if (history.length > 20) {
+            history = history.slice(history.length - 20);
+        }
+
+        // 8. Save back to Redis (86400 seconds = 24 hours TTL)
+        await redisClient.setEx(redisKey, 86400, JSON.stringify(history));
 
         return res.status(200).json({
             success: true,

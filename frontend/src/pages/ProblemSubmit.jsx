@@ -181,6 +181,8 @@ function ProblemSubmit() {
                     submissions={submissions}
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
+                    currentCode={code} 
+                    language={language}
                 />
                 <RightWorkspace 
                     problem={problem}

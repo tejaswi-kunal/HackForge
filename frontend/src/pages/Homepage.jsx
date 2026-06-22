@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import Header from "../components/Header"; 
-import Footer from "../components/Footer"; // <-- Added Footer Import
+import Footer from "../components/Footer"; 
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import { Play, Code2, TrendingUp, Trophy, ChevronRight, Terminal, X, ArrowRight } from "lucide-react";
 
@@ -239,15 +239,15 @@ function Homepage() {
                     <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5">
                         <div className="text-center">
                             <h3 className="text-4xl font-display font-black text-white mb-1">202K<span className="text-[#C9963A]">+</span></h3>
-                            <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Students</p>
+                            <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Users</p>
                         </div>
                         <div className="text-center">
                             <h3 className="text-4xl font-display font-black text-white mb-1">1,250<span className="text-[#C9963A]">+</span></h3>
                             <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Algorithms</p>
                         </div>
                         <div className="text-center">
-                            <h3 className="text-4xl font-display font-black text-white mb-1">99<span className="text-[#C9963A]">%</span></h3>
-                            <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Acceptance</p>
+                            <h3 className="text-4xl font-display font-black text-white mb-1">27<span className="text-[#C9963A]">+</span></h3>
+                            <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">New Problems</p>
                         </div>
                         <div className="text-center">
                             <h3 className="text-4xl font-display font-black text-white mb-1">24<span className="text-[#C9963A]">/</span>7</h3>
@@ -363,7 +363,7 @@ function Homepage() {
                     <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
                         <h2 className="text-4xl md:text-5xl font-display font-black text-white mb-6">Stop thinking. <span className="text-[#C9963A]">Start coding.</span></h2>
                         <p className="text-zinc-400 text-lg mb-10 max-w-2xl mx-auto">
-                            Join thousands of developers leveling up their algorithm skills every single day. Your next big career move starts with a single compiled line.
+                            Join thousands of coders leveling up their algorithm skills every single day. Your next big career move starts with a single compiled line.
                         </p>
                         
                         {/* Dynamic Button based on Auth state */}

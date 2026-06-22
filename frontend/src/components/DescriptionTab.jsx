@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ThumbsUp, ThumbsDown, Lightbulb, ChevronDown, ChevronUp, Activity, CheckCircle2, Bookmark } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Lightbulb, ChevronDown, ChevronUp, Activity, CheckCircle2, Bookmark, ShieldAlert } from "lucide-react";
 import axiosClient from "../utils/axiosClient";
 
 const DIFFICULTY_STYLE = {
@@ -28,7 +28,7 @@ function DescriptionTab({ problem }) {
     const acceptedSubs = problem.acceptedSubmissions || 0;
     const acceptanceRate = totalSubs > 0 ? ((acceptedSubs / totalSubs) * 100).toFixed(1) + "%" : "0%";
 
-    // THE FIX: Fetch initial user reaction AND saved status
+    // Fetch initial user reaction AND saved status
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -36,8 +36,7 @@ function DescriptionTab({ problem }) {
                 const reactionRes = await axiosClient.get(`/problem/reaction/${problem._id}`);
                 setReaction(reactionRes.data.reaction);
 
-                // 2. Fetch Saved Status (Option 2 implementation)
-                // Note: Ensure your backend has this route returning { isSaved: true/false }
+                // 2. Fetch Saved Status 
                 const savedRes = await axiosClient.get(`/problem/checkSaved/${problem._id}`);
                 setIsSaved(savedRes.data.isSaved);
 
@@ -73,15 +72,20 @@ function DescriptionTab({ problem }) {
         }
     };
 
+    // UPDATED: Toggle Save/Unsave Problem
     const handleSaveProblem = async () => {
         if (isSaving) return;
         setIsSaving(true);
         try {
-            await axiosClient.post(`/problem/saveProblem/${problem._id}`);
-            // Toggle the state locally to avoid needing another API call
-            setIsSaved(!isSaved); 
+            if (isSaved) {
+                await axiosClient.post(`/problem/unsaveProblem/${problem._id}`);
+                setIsSaved(false); 
+            } else {
+                await axiosClient.post(`/problem/saveProblem/${problem._id}`);
+                setIsSaved(true); 
+            }
         } catch (err) {
-            console.error("Error saving problem", err);
+            console.error("Error toggling save status", err);
         } finally {
             setIsSaving(false);
         }
@@ -196,6 +200,28 @@ function DescriptionTab({ problem }) {
                             )}
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* NEW: Constraints Section */}
+            {problem.constraints && problem.constraints.length > 0 && (
+                <div className="mt-12 border-t border-white/[0.06] pt-8">
+                    <h3 className="font-display text-xl font-bold text-white flex items-center gap-2 mb-5">
+                        <ShieldAlert size={20} className="text-[#C9963A]" /> Constraints
+                    </h3>
+                    
+                    <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-5 shadow-inner">
+                        <ul className="space-y-4">
+                            {problem.constraints.map((constraint, idx) => (
+                                <li key={idx} className="flex items-center gap-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#C9963A]/50 shrink-0" />
+                                    <code className="font-mono bg-[#080808] border border-white/[0.04] p-3 rounded-xl text-sm text-zinc-300 shadow-inner w-full block">
+                                        <span dangerouslySetInnerHTML={{ __html: constraint }} />
+                                    </code>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             )}
 

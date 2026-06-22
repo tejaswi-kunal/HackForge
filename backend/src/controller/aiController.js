@@ -375,7 +375,7 @@ const sendMessage = async (req, res) => {
 
             Instead respond:
 
-            “A detailed solution and the most optimized implementation are available in the Solution section for this problem. I can help you understand the approach, explain specific parts of the solution, analyze complexity, provide hints, debug your code, or clarify any concept related to the solution.”
+            “A   detailed solution and the most optimized implementation are available in the Solution section for this problem. I can help you understand the approach, explain specific parts of the solution, analyze complexity, provide hints, debug your code, or clarify any concept related to the solution.”
 
             ==================================================
             GENERAL RULES
@@ -437,7 +437,7 @@ const sendMessage = async (req, res) => {
             config: {
                 systemInstruction: systemInstruction,
                 temperature: 0.3, // Low temperature = highly logical, strict adherence to rules
-                maxOutputTokens: 1200, // Hard cap to prevent it from dumping massive solutions
+                maxOutputTokens: 8192, // Hard cap to prevent it from dumping massive solutions
             },
             history: geminiHistory
         });
@@ -481,7 +481,7 @@ const sendMessage = async (req, res) => {
         } catch {
             parsedResponse = {
                 type: "general_response",
-                content: aiResponseText
+                content: cleanedResponse
             };
         }
 

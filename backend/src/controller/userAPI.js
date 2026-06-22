@@ -537,13 +537,15 @@ const forgetPassword=async(req,res)=>{
 
         } catch(err) {
 
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpire = undefined;
+    console.error("FORGOT PASSWORD EMAIL ERROR:", err);
 
-            await user.save({ validateBeforeSave:false });
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
 
-            throw new Error("Email could not be sent");
-        }
+    await user.save({ validateBeforeSave:false });
+
+    throw err;
+}
 
         return res.status(200).json({
             success:true,

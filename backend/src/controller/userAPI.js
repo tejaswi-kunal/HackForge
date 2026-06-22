@@ -5,6 +5,8 @@ const jwt=require('jsonwebtoken');
 const redisClient = require('../config/redis');
 const validator=require('validator');
 const Submission=require('../model/Submission');
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail");
 
 const getUserSubmissions=async(req,res)=>{
     try{
@@ -457,4 +459,187 @@ const getPublicProfile=async(req,res)=>{
     }
 }
 
-module.exports={userRegister,login,logout,adminRegister,getAccount,deleteAccount,updateProfile,changePassword,getPublicProfile,getUserSubmissions};
+const forgetPassword=async(req,res)=>{
+    try{
+        const {emailId}=req.body;
+
+        const user = await User.findOne({ emailId });
+
+        if(!user)
+        {
+            return res.status(200).json(
+                {
+                    "success": true,
+                    "message": "If an account exists with this email, a password reset link has been sent."
+                }
+            );
+        }
+
+        // reset password token generation
+        const resetToken = crypto
+            .randomBytes(32)
+            .toString("hex");
+
+        // now we will store the hashed version in the db and send the above version in reset link
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        user.resetPasswordToken = hashedToken;
+
+        // now we have to set the expiry of this token 
+        user.resetPasswordExpire =Date.now() + 10 * 60 * 1000;
+        
+        await user.save({ validateBeforeSave:false });
+
+        const resetUrl =`${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+        const html = `
+            <h2>HackForge Password Reset</h2>
+
+            <p>You requested a password reset.</p>
+
+            <p>
+                Click the link below to reset your password:
+            </p>
+
+            <a href="${resetUrl}">
+                Reset Password
+            </a>
+
+            <p>
+                This link will expire in 10 minutes.
+            </p>
+
+            <p>
+                If you did not request this, please ignore this email.
+            </p>
+        `;
+
+        try {
+
+            await sendEmail({
+            to: user.emailId,
+            subject: "HackForge Password Reset",
+            html
+        });
+
+        } catch(err) {
+
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+
+            await user.save({ validateBeforeSave:false });
+
+            throw new Error("Email could not be sent");
+        }
+
+        return res.status(200).json({
+            success:true,
+            message:"If an account exists with this email, a password reset link has been sent."
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const validateToken=async(req,res)=>{
+    try{
+        const { token } = req.params;
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+
+        if(!user)
+        {
+            return res.status(400).json({
+                success:false,
+                message:"Invalid or expired reset token"
+            });
+        }
+
+        return res.status(200).json({
+            success:true,
+            message:"Token is valid"
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+const resetPassword=async(req,res)=>{
+    try{
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if(!password)
+        {
+            return res.status(400).send("Password is required");
+        }
+
+        if(!validator.isStrongPassword(password))
+        {
+            return res.status(400).send("Weak Password!");
+        }
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+
+        if(!user)
+        {
+            return res.status(400).json({
+                success:false,
+                message:"Invalid or expired reset token"
+            });
+        }
+
+        user.password = await bcrypt.hash(password,10);
+        user.passwordChangedAt = Date.now();
+
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+
+        return res.status(200).json({
+            success:true,
+            message:"Password reset successfully"
+        });
+
+    }catch(err){
+        res.status(400).send("Error : "+err.message);
+    }
+}
+
+module.exports={
+    userRegister,
+    login,
+    logout,
+    adminRegister,
+    getAccount,
+    deleteAccount,
+    updateProfile,
+    changePassword,
+    getPublicProfile,
+    getUserSubmissions,
+    forgetPassword,
+    validateToken,
+    resetPassword
+};

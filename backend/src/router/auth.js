@@ -1,7 +1,7 @@
 const express=require('express');
 const {userRegister,login,logout,adminRegister,getAccount,deleteAccount,
-    updateProfile,changePassword,getPublicProfile,getUserSubmissions
-}=require('../controller/userAPI');
+    updateProfile,changePassword,getPublicProfile,getUserSubmissions,forgetPassword,validateToken,resetPassword
+    }=require('../controller/userAPI');
 const userMiddleware=require('../middleware/userMiddleware');
 const adminMiddleware=require('../middleware/adminMiddleware');
 const User=require('../model/User'); 
@@ -19,6 +19,9 @@ authRouter.put('/updateProfile',userMiddleware,updateProfile);
 authRouter.put('/changePassword',userMiddleware,changePassword);
 authRouter.get('/getPublicProfile/:id',userMiddleware,getPublicProfile);
 authRouter.get('/getUserSubmissions',userMiddleware,getUserSubmissions);
+authRouter.post('/forgot-password',authRateLimiter,forgetPassword);
+authRouter.get("/reset-password/:token",validateToken);
+authRouter.post("/reset-password/:token",resetPassword);
 authRouter.get('/checkAuth',userMiddleware,async(req,res)=>{
     // we will access this api as the user visit the website using new tab,to check if he is a already Signedup user
     const user=await User.findById(req.result);

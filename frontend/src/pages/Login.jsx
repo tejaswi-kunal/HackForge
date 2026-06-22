@@ -99,7 +99,10 @@ function Login() {
                         </div>
     
                         <div className="text-right -mt-1">
-                            <span className="text-zinc-500 text-xs cursor-pointer hover:text-[#C9963A] transition-colors duration-200 font-medium">
+                            <span 
+                                onClick={() => navigate('/forgot-password')} 
+                                className="text-zinc-500 text-xs cursor-pointer hover:text-[#C9963A] transition-colors duration-200 font-medium"
+                            >
                                 Forgot password?
                             </span>
                         </div>

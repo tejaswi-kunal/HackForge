@@ -10,6 +10,8 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Problem from "./pages/Problem"; 
 import ProblemSubmit from "./pages/ProblemSubmit";
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/Settings/EditProfile";
@@ -61,6 +63,8 @@ function App() {
       <Route path="/" element={<Homepage />} />
       <Route path="/signup" element={isAuthenticated ? <Navigate to={'/'} /> : <SignUp />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to={'/'} /> : <Login />} />
+      <Route path="/forgot-password" element={isAuthenticated ? <Navigate to={'/'} /> : <ForgotPassword />} />
+      <Route path="/reset-password/:token" element={isAuthenticated ? <Navigate to={'/'} /> :<ResetPassword />} />
       
       <Route path="/problems" element={!isAuthenticated ? <Navigate to={'/login'} /> : <Problem />} />
       <Route path="/problem/:id" element={!isAuthenticated ? <Navigate to={'/login'} /> : <ProblemSubmit />} />

@@ -68,7 +68,12 @@ const userRegister=async (req,res)=>{
         const token=jwt.sign({id:people._id,emailId:people.emailId,role:'user'},process.env.SECRET_KEY,{expiresIn:'60m'});
 
         // sending jwt token 
-        res.cookie('token',token,{maxAge:60*60*1000});
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 60 * 60 * 1000
+        });
 
         let currentStreak = people.streakCount;
 
@@ -139,7 +144,12 @@ const login=async (req,res)=>{
         const token=jwt.sign({id:people._id,emailId:people.emailId,role:people.role},process.env.SECRET_KEY,{expiresIn:'60m'});
 
         // sending jwt token
-        res.cookie('token',token,{maxAge:60*60*1000}); 
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 60 * 60 * 1000
+        });
 
         let currentStreak = people.streakCount;
 

@@ -37,7 +37,8 @@ function CustomDropdown({ value, options, onChange, minWidth = "140px", placehol
     const selectedOption = options.find(o => o.value === value);
 
     return (
-        <div className="relative shrink-0" style={{ minWidth }} ref={ref}>
+        // FIX 2: Dynamically elevate z-index when open so sibling dropdowns don't overlap each other
+        <div className={`relative shrink-0 transition-all ${isOpen ? "z-[100]" : "z-10"}`} style={{ minWidth }} ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between bg-zinc-950 border text-sm font-bold rounded-xl px-4 py-2.5 transition-all duration-300 shadow-sm outline-none ${
@@ -85,6 +86,7 @@ function Problems() {
  
     const [listType, setListType]         = useState("all"); 
     const [search, setSearch]             = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState(""); 
     const [difficulty, setDifficulty]     = useState("");
     const [selectedTags, setSelectedTags] = useState([]);
     const [showTagPanel, setShowTagPanel] = useState(false);
@@ -96,8 +98,18 @@ function Problems() {
     const [total, setTotal]               = useState(0);
     const [totalPages, setTotalPages]     = useState(1);
     const [problems, setProblems]         = useState([]);
+    
+    const [isInitialLoad, setIsInitialLoad] = useState(true); 
     const [fetchLoading, setFetchLoading] = useState(true);
     const [fetchError, setFetchError]     = useState(null);
+
+    // Debounce Effect for Search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const fetchProblems = useCallback(async (currentPage) => {
         setFetchLoading(true);
@@ -105,7 +117,7 @@ function Problems() {
         try {
             if (listType === "all") {
                 const params = new URLSearchParams();
-                if (search)     params.append("search", search);
+                if (debouncedSearch) params.append("search", debouncedSearch); 
                 if (difficulty) params.append("difficulty", difficulty);
                 selectedTags.forEach(t => params.append("tags", t));
                 if (sortBy)     params.append("sortBy", sortBy);
@@ -126,8 +138,8 @@ function Problems() {
                 const res = await axiosClient.get(endpoint);
                 let filtered = res.data;
                 
-                if (search) {
-                    filtered = filtered.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
+                if (debouncedSearch) { 
+                    filtered = filtered.filter(p => p.title.toLowerCase().includes(debouncedSearch.toLowerCase()));
                 }
                 if (difficulty) {
                     filtered = filtered.filter(p => p.difficulty === difficulty);
@@ -164,13 +176,14 @@ function Problems() {
             setTotalPages(1);
         } finally {
             setFetchLoading(false);
+            setIsInitialLoad(false); 
         }
-    }, [listType, search, difficulty, selectedTags, sortBy, sortOrder]);
+    }, [listType, debouncedSearch, difficulty, selectedTags, sortBy, sortOrder]); 
  
     useEffect(() => {
         setPage(1);
         fetchProblems(1);
-    }, [listType, search, difficulty, selectedTags, sortBy, sortOrder, fetchProblems]);
+    }, [listType, debouncedSearch, difficulty, selectedTags, sortBy, sortOrder, fetchProblems]); 
  
     useEffect(() => {
         fetchProblems(page);
@@ -183,6 +196,7 @@ function Problems() {
  
     const clearFilters = () => {
         setSearch("");
+        setDebouncedSearch("");
         setDifficulty("");
         setSelectedTags([]);
         setSortBy("");
@@ -197,8 +211,7 @@ function Problems() {
  
     const hasFilters = search || difficulty || selectedTags.length > 0 || sortBy || listType !== "all";
 
-    if(fetchLoading)
-    {
+    if(isInitialLoad) {
         return <PremiumLoader />
     }
  
@@ -225,9 +238,10 @@ function Problems() {
                     </div>
                 </div>
  
-                {/* THE FIX: relative z-20 establishes a high stacking context for the filters and dropdowns */}
                 <div className="relative z-20 mb-6">
-                    <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-4 shadow-lg backdrop-blur-sm">
+                    {/* FIX 1: The z-50 MUST go on this outer container to escape the backdrop-blur stacking context trap */}
+                    <div className="relative z-50 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-4 shadow-lg backdrop-blur-sm">
+                        
                         <div className="flex flex-wrap lg:flex-nowrap items-center gap-3">
                             
                             <div className="relative flex-1 min-w-[200px]">
@@ -318,9 +332,8 @@ function Problems() {
                         </div>
                     </div>
 
-                    {/* Tag Panel (Kept inside the z-20 container so it doesn't get buried) */}
                     {showTagPanel && (
-                        <div className="mt-3 p-5 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 flex flex-wrap gap-2 shadow-md backdrop-blur-sm animate-in fade-in slide-in-from-top-2">
+                        <div className="relative z-40 mt-3 p-5 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 flex flex-wrap gap-2 shadow-md backdrop-blur-sm animate-in fade-in slide-in-from-top-2">
                             {TAGS.map(tag => (
                                 <button 
                                     key={tag} 
@@ -357,8 +370,7 @@ function Problems() {
                     </div>
                 )}
  
-                {/* THE FIX: relative z-10 ensures the table stays strictly below the open dropdowns */}
-                <div className="relative z-10 rounded-2xl border border-zinc-800/80 bg-zinc-900/30 overflow-hidden shadow-xl backdrop-blur-sm">
+                <div className={`relative z-10 rounded-2xl border border-zinc-800/80 bg-zinc-900/30 overflow-hidden shadow-xl backdrop-blur-sm transition-opacity duration-300 ${fetchLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
                     
                     <div className="grid grid-cols-[60px_1fr_120px_120px_120px_100px] gap-4 px-6 py-5 border-b border-zinc-800/80 bg-zinc-900/60">
                         <div className="font-display text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] text-center">Status</div>
@@ -391,7 +403,7 @@ function Problems() {
                         </div>
                     )}
  
-                    {!fetchLoading && !fetchError && problems.map((problem, idx) => {
+                    {!fetchError && problems.map((problem, idx) => {
                         const diff = DIFFICULTY_STYLE[problem.difficulty] || {};
                         const rowNum = (page - 1) * LIMIT + idx + 1;
                         const isSolvedMark = listType === "solved" || problem.isSolved;
@@ -402,7 +414,6 @@ function Problems() {
                                 onClick={() => navigate(`/problem/${problem._id}`)}
                                 className="grid grid-cols-[60px_1fr_120px_120px_120px_100px] gap-4 px-6 py-4 border-b border-zinc-800/40 last:border-0 hover:bg-zinc-800/40 cursor-pointer transition-all duration-200 group relative"
                             >
-                                {/* Subtle inner top highlight to make rows feel like pressed cards */}
                                 <div className="absolute top-0 left-0 w-full h-[1px] bg-white/[0.02] group-hover:bg-white/[0.04]"></div>
 
                                 <div className="flex items-center justify-center relative z-10">
@@ -454,7 +465,7 @@ function Problems() {
                     })}
                 </div>
  
-                {!fetchLoading && totalPages > 1 && (
+                {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-8 relative z-10">
                         <p className="font-mono text-zinc-500 text-xs">
                             Showing <span className="text-zinc-300">{(page - 1) * LIMIT + 1}</span> to <span className="text-zinc-300">{Math.min(page * LIMIT, total)}</span> of <span className="text-zinc-300">{total}</span>
@@ -463,7 +474,7 @@ function Problems() {
                         <div className="flex items-center gap-2 bg-zinc-900/40 p-1.5 rounded-2xl border border-zinc-800/80 shadow-sm backdrop-blur-sm">
                             <button
                                 onClick={() => setPage(v => Math.max(1, v - 1))}
-                                disabled={page === 1}
+                                disabled={page === 1 || fetchLoading}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                             >
                                 <ArrowLeft size={16} />
@@ -481,7 +492,8 @@ function Problems() {
                                         <button 
                                             key={p} 
                                             onClick={() => setPage(p)}
-                                            className={`w-10 h-10 rounded-xl font-display font-bold text-sm transition-all duration-300 ${
+                                            disabled={fetchLoading}
+                                            className={`w-10 h-10 rounded-xl font-display font-bold text-sm transition-all duration-300 disabled:opacity-50 ${
                                                 page === p
                                                 ? "bg-[#C9963A] text-zinc-950 shadow-[0_0_15px_rgba(201,150,58,0.3)]"
                                                 : "text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -495,7 +507,7 @@ function Problems() {
  
                             <button
                                 onClick={() => setPage(v => Math.min(totalPages, v + 1))}
-                                disabled={page === totalPages}
+                                disabled={page === totalPages || fetchLoading}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                             >
                                 <ArrowRight size={16} />

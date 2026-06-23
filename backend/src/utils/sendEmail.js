@@ -13,6 +13,14 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+transporter.verify((error, success) => {
+    if(error){
+        console.error("TRANSPORTER VERIFY ERROR:", error);
+    }
+    else{
+        console.log("MAIL SERVER READY");
+    }
+});
 
 const sendEmail = async ({to, subject, html}) => {
     try{

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
-import { Code2 } from "lucide-react"; // NEW: Professional icon instead of Mac dots
+import { Code2, Copy, Check } from "lucide-react"; 
 
 function SolutionsTab({ problem }) {
     const [solutionLang, setSolutionLang] = useState("");
+    const [copied, setCopied] = useState(false); 
 
     // Initialize solution language when problem loads
     useEffect(() => {
@@ -21,9 +22,26 @@ function SolutionsTab({ problem }) {
         return l;
     };
 
+    // Copy Handler
+    const handleCopy = async () => {
+        const currentSolution = problem.referenceSolution.find(s => s.language === solutionLang);
+        if (currentSolution?.completeCode) {
+            try {
+                await navigator.clipboard.writeText(currentSolution.completeCode);
+                setCopied(true);
+                
+                // Reset back to "Copy" after 2 seconds
+                setTimeout(() => {
+                    setCopied(false);
+                }, 2000);
+            } catch (err) {
+                console.error("Failed to copy code: ", err);
+            }
+        }
+    };
+
     return (
         <div className="space-y-6 h-full flex flex-col">
-            {/* APPLIED font-display to the main header */}
             <h3 className="font-display text-2xl font-bold text-white tracking-wide">Reference Solutions</h3>
             
             {problem.referenceSolution?.length > 0 ? (
@@ -33,7 +51,10 @@ function SolutionsTab({ problem }) {
                         {problem.referenceSolution.map((sol) => (
                             <button
                                 key={sol.language}
-                                onClick={() => setSolutionLang(sol.language)}
+                                onClick={() => {
+                                    setSolutionLang(sol.language);
+                                    setCopied(false); // Reset copy state when switching languages
+                                }}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                                     solutionLang === sol.language 
                                         ? "bg-[#C9963A] text-black shadow-[0_0_15px_rgba(201,150,58,0.3)]" 
@@ -47,15 +68,41 @@ function SolutionsTab({ problem }) {
                     
                     {solutionLang && problem.referenceSolution.find(s => s.language === solutionLang) && (
                         <div className="border border-white/[0.06] rounded-2xl overflow-hidden shadow-2xl flex-1 flex flex-col relative">
-                            {/* Premium Editor Header - CLEANED UP */}
-                            <div className="bg-[#111] px-5 py-3 border-b border-white/[0.06] flex items-center gap-3">
-                                <Code2 size={16} className="text-[#C9963A]" />
-                                <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">
-                                    {solutionLang} SOLUTION
-                                </span>
+                            
+                            {/* <-- UPDATED: Premium Editor Header with Flex Justify-Between --> */}
+                            <div className="bg-[#111] px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                                {/* Left Side: Language Indicator */}
+                                <div className="flex items-center gap-3">
+                                    <Code2 size={16} className="text-[#C9963A]" />
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">
+                                        {solutionLang} SOLUTION
+                                    </span>
+                                </div>
+                                
+                                {/* Right Side: Copy Button */}
+                                <button 
+                                    onClick={handleCopy}
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors hover:bg-white/[0.05] active:scale-95"
+                                >
+                                    {copied ? (
+                                        <>
+                                            <Check size={14} className="text-emerald-400" />
+                                            <span className="text-[10px] font-bold tracking-widest uppercase text-emerald-400">
+                                                Copied!
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy size={14} className="text-zinc-400" />
+                                            <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 group-hover:text-white transition-colors">
+                                                Copy
+                                            </span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
                             
-                            {/* Monaco Editor in Read-Only Mode (Using JetBrains Mono internally) */}
+                            {/* Monaco Editor in Read-Only Mode */}
                             <div className="flex-1 bg-[#0a0a0a]">
                                 <Editor
                                     height="100%"
@@ -67,7 +114,7 @@ function SolutionsTab({ problem }) {
                                         minimap: { enabled: false },
                                         scrollBeyondLastLine: false,
                                         fontSize: 14,
-                                        fontFamily: '"JetBrains Mono", monospace', // FORCES premium coding font
+                                        fontFamily: '"JetBrains Mono", monospace',
                                         renderLineHighlight: "none",
                                         hideCursorInOverviewRuler: true,
                                         overviewRulerBorder: false,
